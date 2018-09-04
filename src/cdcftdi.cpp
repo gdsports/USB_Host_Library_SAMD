@@ -338,9 +338,7 @@ uint8_t FTDI::SetData(uint16_t databm) {
 }
 
 uint32_t FTDI::RcvData(uint16_t *bytes_rcvd, uint8_t *dataptr) {
-        uint8_t u8_bytes_rcvd = (uint8_t)*bytes_rcvd;
-        uint32_t rv = pUsb->inTransfer((uint32_t)bAddress, epInfo[epDataInIndex].epAddr, &u8_bytes_rcvd, dataptr);
-        *bytes_rcvd = u8_bytes_rcvd;
+        uint32_t rv = pUsb->inTransfer((uint32_t)bAddress, epInfo[epDataInIndex].epAddr, bytes_rcvd, dataptr);
         if(rv && rv != USB_ERRORFLOW) {
                 Release();
         }

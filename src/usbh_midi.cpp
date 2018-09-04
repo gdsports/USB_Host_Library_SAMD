@@ -1,7 +1,7 @@
 /*
  *******************************************************************************
  * USB-MIDI class driver for USB Host Shield 2.0 Library
- * Copyright (c) 2012-2017 Yuuichi Akagawa
+ * Copyright (c) 2012-2018 Yuuichi Akagawa
  *
  * Idea from LPK25 USB-MIDI to Serial MIDI converter
  *   by Collin Cunningham - makezine.com, narbotic.com
@@ -106,15 +106,6 @@ readPtr(0) {
         }
 }
 
-uint32_t USBH_MIDI::DEVCLASSOK(uint32_t  klass) {
-  return (klass == USB_CLASS_AUDIO) || (klass == USB_CLASS_USE_CLASS_INFO);
-}
-
-uint32_t USBH_MIDI::ConfigureDevice(uint32_t parent, uint32_t port, uint32_t lowspeed) {
-        return 0;
-}
-
-
 uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
 {
         uint8_t    buf[sizeof (USB_DEVICE_DESCRIPTOR)];
@@ -123,6 +114,8 @@ uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
         UsbDeviceDefinition *p = NULL;
         EpInfo     *oldep_ptr = NULL;
         uint8_t    num_of_conf;  // number of configurations
+
+        USBTRACE("\rMIDI Init\r\n");
 
         //for reconnect
         for(uint8_t i=epDataInIndex; i<=epDataOutIndex; i++) {
@@ -140,7 +133,7 @@ uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
                 return USB_ERROR_CLASS_INSTANCE_ALREADY_IN_USE;
         }
         // Get pointer to pseudo device with address 0 assigned
-        p = addrPool.GetUsbDevicePtr(0);
+        p = addrPool.GetUsbDevicePtr(bAddress);
         if (!p) {
                 return USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
         }
@@ -206,6 +199,10 @@ uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
         USBTRACE("VID:"), D_PrintHex(vid, 0x80);
         USBTRACE(" PID:"), D_PrintHex(pid, 0x80);
         USBTRACE2(" #Conf:", num_of_conf);
+
+        //Setup for well known vendor/device specific configuration
+        bTransferTypeMask = bmUSB_TRANSFER_TYPE;
+        setupDeviceSpecific();
 
         isMidiFound  = false;
         for (uint8_t i=0; i<num_of_conf; i++) {
@@ -312,7 +309,7 @@ uint8_t USBH_MIDI::parseConfigDescr( uint8_t addr, uint8_t conf )
                         USBTRACE("-EPAddr:"), D_PrintHex(epDesc->bEndpointAddress, 0x80);
                         USBTRACE(" bmAttr:"), D_PrintHex(epDesc->bmAttributes, 0x80);
                         USBTRACE2(" MaxPktSz:", (uint8_t)epDesc->wMaxPacketSize);
-                        if ((epDesc->bmAttributes & bmUSB_TRANSFER_TYPE) == USB_TRANSFER_TYPE_BULK) {//bulk
+                        if ((epDesc->bmAttributes & bTransferTypeMask) == USB_TRANSFER_TYPE_BULK) {//bulk
                                 uint8_t index;
                                 if( isMidi )
                                         index = ((epDesc->bEndpointAddress & 0x80) == 0x80) ? epDataInIndex : epDataOutIndex;
@@ -346,8 +343,20 @@ uint32_t USBH_MIDI::Release()
         return 0;
 }
 
+/* Setup for well known vendor/device specific configuration */
+void USBH_MIDI::setupDeviceSpecific()
+{
+        // Novation
+        if( vid == 0x1235 ) {
+                // LaunchPad's endpoint attirbute is interrupt (0x20:S, 0x36:Mini, 0x51:Pro, 0x69:MK2, 0x7b:Launchkey25 MK2)
+                if(pid == 0x20 || pid == 0x36 || pid == 0x51 || pid == 0x69 || pid == 0x7b ) {
+                        bTransferTypeMask = 2;
+                }
+        }
+}
+
 /* Receive data from MIDI device */
-uint8_t USBH_MIDI::RecvData(uint8_t *bytes_rcvd, uint8_t *dataptr)
+uint8_t USBH_MIDI::RecvData(uint16_t *bytes_rcvd, uint8_t *dataptr)
 {
         *bytes_rcvd = (uint16_t)epInfo[epDataInIndex].maxPktSize;
         uint8_t  r = pUsb->inTransfer(bAddress, epInfo[epDataInIndex].epAddr, bytes_rcvd, dataptr);
@@ -377,7 +386,7 @@ uint8_t USBH_MIDI::RecvData(uint8_t *outBuf, bool isRaw)
         }
 
         readPtr = 0;
-        rcode = RecvData( (uint8_t *)&rcvd, recvBuf);
+        rcode = RecvData( &rcvd, recvBuf);
         if( rcode != 0 ) {
                 return 0;
         }

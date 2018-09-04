@@ -46,14 +46,9 @@ void loop()
 {
   UsbH.Task();
   //uint32_t t1 = (uint32_t)micros();
-  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING )
-  {
-    uint8_t midimsg[4] = { 0x01, 0x02 , 0x03, 0x04 };
-    //Midi.SendRawData(sizeof(midimsg), midimsg);
+  if ( Midi ) {
     MIDI_poll();
   }
-  //delay(1ms)
-  //doDelay(t1, (uint32_t)micros(), 1000);
 }
 
 // Poll USB MIDI Controler and send to serial MIDI
@@ -61,13 +56,13 @@ void MIDI_poll()
 {
   char buf[20];
   uint8_t bufMidi[64];
-  uint8_t  rcvd;
+  uint16_t  rcvd;
 
-  if (Midi.vid != vid || Midi.pid != pid) {
-    sprintf(buf, "VID:%04X, PID:%04X", Midi.vid, Midi.pid);
-    SERIAL_PORT_MONITOR.println(buf);
-    vid = Midi.vid;
-    pid = Midi.pid;
+  if (Midi.idVendor() != vid || Midi.idProduct() != pid) {
+    vid = Midi.idVendor();
+    pid = Midi.idProduct();
+    sprintf(buf, "VID:%04X, PID:%04X", vid, pid);
+    Serial.println(buf);
   }
   if (Midi.RecvData(&rcvd,  bufMidi) == 0 ) {
     uint32_t time = (uint32_t)millis();
@@ -80,21 +75,5 @@ void MIDI_poll()
       SERIAL_PORT_MONITOR.print(buf);
     }
     SERIAL_PORT_MONITOR.println();
-  }
-}
-
-// Delay time (max 16383 us)
-void doDelay(uint32_t t1, uint32_t t2, uint32_t delayTime)
-{
-  uint32_t t3;
-
-  if ( t1 > t2 ) {
-    t3 = (0xFFFFFFFF - t1 + t2);
-  } else {
-    t3 = t2 - t1;
-  }
-
-  if ( t3 < delayTime ) {
-    delayMicroseconds(delayTime - t3);
   }
 }

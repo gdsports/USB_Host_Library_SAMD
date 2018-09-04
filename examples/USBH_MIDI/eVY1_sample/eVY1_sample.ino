@@ -12,8 +12,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 USBHost UsbH;
 //USBHub Hub(&UsbH);
@@ -49,8 +49,7 @@ void setup()
 void loop()
 {
   UsbH.Task();
-  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING )
-  {
+  if( Midi ) {
     MIDI_poll();
     noteOn(0x3f);
     delay(400);
@@ -65,8 +64,8 @@ void MIDI_poll()
   uint8_t inBuf[ 3 ];
 
   //first call?
-  if (Midi.vid != vid || Midi.pid != pid) {
-    vid = Midi.vid; pid = Midi.pid;
+  if (Midi.idVendor() != vid || Midi.idProduct() != pid) {
+    vid = Midi.idVendor(); pid = Midi.idProduct();
     Midi.SendSysEx(exdata, sizeof(exdata));
     delay(500);
   }

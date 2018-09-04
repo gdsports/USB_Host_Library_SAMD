@@ -20,7 +20,7 @@ export PATH="${IDEDIR}:${PATH}"
 cd ${IDEDIR}
 which arduino
 # Install board package
-arduino --pref "compiler.warning_level=default" --save-prefs
+arduino --pref "compiler.warning_level=more" --save-prefs
 arduino --install-boards "arduino:samd"
 BOARD="arduino:samd:arduino_zero_edbg"
 arduino --board "${BOARD}" --save-prefs

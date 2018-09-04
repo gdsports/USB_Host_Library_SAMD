@@ -19,8 +19,8 @@
 // Satisfy the IDE, which needs to see the include statment in the ino too.
 #ifdef dobogusinclude
 #include <spi4teensy3.h>
-#include <SPI.h>
 #endif
+#include <SPI.h>
 
 #if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD)
     struct MySettings : public midi::DefaultSettings
@@ -82,9 +82,7 @@ void loop()
   uint8_t msg[4];
 
   UsbH.Task();
-  uint32_t t1 = (uint32_t)micros();
-  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING )
-  {
+  if ( Midi ) {
     MidiUsb_poll();
     if (MIDI.read()) {
       msg[0] = MIDI.getType();
@@ -116,7 +114,7 @@ void MidiUsb_poll()
   uint16_t  rcvd;
   uint8_t   readPtr = 0;
 
-  rcode = Midi.RecvData((uint8_t*) &rcvd, recvBuf);
+  rcode = Midi.RecvData( &rcvd, recvBuf);
 
   //data check
   if (rcode != 0) return;
@@ -150,20 +148,4 @@ void MidiUsb_poll()
     }
   } while (size > 0);
 #endif
-}
-
-// Delay time (max 16383 us)
-void doDelay(uint32_t t1, uint32_t t2, uint32_t delayTime)
-{
-  uint32_t t3;
-
-  if ( t1 > t2 ) {
-    t3 = (0xFFFFFFFF - t1 + t2);
-  } else {
-    t3 = t2 - t1;
-  }
-
-  if ( t3 < delayTime ) {
-    delayMicroseconds(delayTime - t3);
-  }
 }

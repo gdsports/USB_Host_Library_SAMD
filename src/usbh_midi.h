@@ -28,10 +28,8 @@
 
 #if !defined(_USBH_MIDI_H_)
 #define _USBH_MIDI_H_
-#include "Arduino.h"
 //#include "Usb.h"
 #include "hid.h"
-//#include "HID.h"
 
 #define MIDI_MAX_ENDPOINTS 5 //endpoint 0, bulk_IN(MIDI), bulk_OUT(MIDI), bulk_IN(VSP), bulk_OUT(VSP)
 #define USB_SUBCLASS_MIDISTREAMING 3
@@ -54,8 +52,9 @@ protected:
         uint8_t  bConfNum;    // configuration number
         uint8_t  bNumEP;      // total number of EP in the configuration
         bool     bPollEnable;
-
         bool isMidiFound;
+        uint16_t pid, vid;    // ProductID, VendorID
+        uint8_t  bTransferTypeMask;
         /* Endpoint data structure */
         EpInfo  epInfo[MIDI_MAX_ENDPOINTS];
         /* MIDI Event packet buffer */
@@ -64,14 +63,18 @@ protected:
 
         uint8_t parseConfigDescr(uint8_t addr, uint8_t conf);
         uint16_t countSysExDataSize(uint8_t *dataptr);
+        void setupDeviceSpecific();
 #ifdef DEBUG_USB_HOST
         void PrintEndpointDescriptor( const USB_ENDPOINT_DESCRIPTOR* ep_ptr );
 #endif
 public:
-        uint16_t pid, vid;
         USBH_MIDI(USBHost *p);
+        // Misc functions
+        operator bool() { return (pUsb->getUsbTaskState()==USB_STATE_RUNNING); }
+        uint16_t idVendor() { return vid; }
+        uint16_t idProduct() { return pid; }
         // Methods for recieving and sending data
-        uint8_t RecvData(uint8_t *bytes_rcvd, uint8_t *dataptr);
+        uint8_t RecvData(uint16_t *bytes_rcvd, uint8_t *dataptr);
         uint8_t RecvData(uint8_t *outBuf, bool isRaw=false);
         uint8_t RecvRawData(uint8_t *outBuf);
         uint8_t SendData(uint8_t *dataptr, uint8_t nCable=0);
@@ -80,14 +83,12 @@ public:
         uint8_t extractSysExData(uint8_t *p, uint8_t *buf);
         uint8_t SendRawData(uint16_t bytes_send, uint8_t *dataptr);
         // backward compatibility functions
-        inline uint8_t RcvData(uint8_t *bytes_rcvd, uint8_t *dataptr){ return RecvData(bytes_rcvd, dataptr); };
+        inline uint8_t RcvData(uint16_t *bytes_rcvd, uint8_t *dataptr) { return RecvData(bytes_rcvd, dataptr); };
         inline uint8_t RcvData(uint8_t *outBuf){ return RecvData(outBuf); };
 
         // USBDeviceConfig implementation
-        virtual uint32_t ConfigureDevice(uint32_t parent, uint32_t port, uint32_t lowspeed);
         virtual uint32_t Init(uint32_t parent, uint32_t port, uint32_t lowspeed);
         virtual uint32_t Release();
         virtual uint32_t GetAddress() { return bAddress; };
-        virtual uint32_t DEVCLASSOK(uint32_t klass);
 };
 #endif //_USBH_MIDI_H_

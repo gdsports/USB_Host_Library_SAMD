@@ -56,7 +56,6 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         EpInfo *oldep_ptr = NULL;
         uint8_t num_of_conf; // number of configurations
 
-        Serial.println("ACM::Init");
         AddressPool &addrPool = pUsb->GetAddressPool();
 
         USBTRACE("ACM Init\r\n");
@@ -64,11 +63,9 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         if(bAddress)
                 return USB_ERROR_CLASS_INSTANCE_ALREADY_IN_USE;
 
-        Serial.println("ACM::Init 1");
         // Get pointer to pseudo device with address 0 assigned
         p = addrPool.GetUsbDevicePtr(0);
 
-        Serial.println("ACM::Init 2");
         if(!p)
                 return USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
 
@@ -76,7 +73,6 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
                 USBTRACE("epinfo\r\n");
                 return USB_ERROR_EPINFO_IS_NULL;
         }
-        Serial.println("ACM::Init 3");
 
         // Save old pointer to EP_RECORD of address 0
         oldep_ptr = p->epinfo;
@@ -95,21 +91,18 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         if(rcode)
                 goto FailGetDevDescr;
 
-        Serial.println("ACM::Init 4");
         // Allocate new address according to device class
         bAddress = addrPool.AllocAddress(parent, false, port);
 
         if(!bAddress)
                 return USB_ERROR_OUT_OF_ADDRESS_SPACE_IN_POOL;
 
-        Serial.println("ACM::Init 5");
         // Extract Max Packet Size from the device descriptor
         epInfo[0].maxPktSize = udd->bMaxPacketSize0;
 
         // Assign new address to the device
         rcode = pUsb->setAddr(0, 0, bAddress);
 
-        Serial.println("ACM::Init 6");
         if(rcode) {
                 p->lowspeed = false;
                 addrPool.FreeAddress(bAddress);

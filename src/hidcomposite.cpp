@@ -59,6 +59,7 @@ void HIDComposite::Initialize() {
         for(uint8_t i = 0; i < totalEndpoints; i++) {
                 epInfo[i].epAddr = 0;
                 epInfo[i].maxPktSize = (i) ? 0 : 8;
+                epInfo[i].bmAttribs  = 0;
                 epInfo[i].bmSndToggle = 0;
                 epInfo[i].bmRcvToggle = 0;
                 epInfo[i].bmNakPower = (i) ? USB_NAK_NOWAIT : USB_NAK_MAX_POWER;
@@ -323,6 +324,7 @@ void HIDComposite::EndpointXtract(uint32_t conf, uint32_t iface, uint32_t alt, u
                 // Fill in the endpoint info structure
                 epInfo[bNumEP].epAddr = (pep->bEndpointAddress & 0x0F);
                 epInfo[bNumEP].maxPktSize = (uint8_t)pep->wMaxPacketSize;
+                epInfo[bNumEP].bmAttribs  = pep->bmAttributes;
                 epInfo[bNumEP].bmSndToggle = 0;
                 epInfo[bNumEP].bmRcvToggle = 0;
                 epInfo[bNumEP].bmNakPower = USB_NAK_NOWAIT;

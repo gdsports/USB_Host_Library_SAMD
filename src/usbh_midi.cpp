@@ -97,6 +97,9 @@ readPtr(0) {
         for(uint8_t i=0; i<MIDI_MAX_ENDPOINTS; i++) {
                 epInfo[i].epAddr      = 0;
                 epInfo[i].maxPktSize  = (i) ? 0 : 8;
+                epInfo[i].bmAttribs   = 0;
+                epInfo[i].bmSndToggle = 0;
+                epInfo[i].bmRcvToggle = 0;
                 epInfo[i].bmNakPower  = (i) ? USB_NAK_NOWAIT : USB_NAK_MAX_POWER;
 
         }
@@ -121,6 +124,7 @@ uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
         for(uint8_t i=epDataInIndex; i<=epDataOutIndex; i++) {
                 epInfo[i].epAddr      = (i==epDataInIndex) ? 0x81 : 0x01;
                 epInfo[i].maxPktSize  = 0;
+                epInfo[i].bmAttribs   = 0;
                 epInfo[i].bmSndToggle = 0;
                 epInfo[i].bmRcvToggle = 0;
         }
@@ -224,8 +228,10 @@ uint32_t USBH_MIDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed)
                 USBTRACE("MIDI not found. Attempts bulk device\r\n");
                 epInfo[epDataInIndex].epAddr      = epInfo[epDataInIndexVSP].epAddr;
                 epInfo[epDataInIndex].maxPktSize  = epInfo[epDataInIndexVSP].maxPktSize;
+                epInfo[epDataInIndex].bmAttribs   = epInfo[epDataInIndexVSP].bmAttribs;
                 epInfo[epDataOutIndex].epAddr     = epInfo[epDataOutIndexVSP].epAddr;
                 epInfo[epDataOutIndex].maxPktSize = epInfo[epDataOutIndexVSP].maxPktSize;
+                epInfo[epDataOutIndex].bmAttribs  = epInfo[epDataOutIndexVSP].bmAttribs;
         }
 
         // Assign epInfo to epinfo pointer

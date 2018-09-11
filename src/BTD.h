@@ -214,7 +214,7 @@ public:
          * @param  lowspeed Speed of the device.
          * @return          0 on success.
          */
-        uint8_t ConfigureDevice(uint8_t parent, uint8_t port, bool lowspeed);
+        uint32_t ConfigureDevice(uint32_t parent, uint32_t port, uint32_t lowspeed);
         /**
          * Initialize the Bluetooth dongle.
          * @param  parent   Hub number.

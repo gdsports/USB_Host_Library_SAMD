@@ -34,6 +34,7 @@ bPollEnable(false) { // don't start polling before dongle is connected
         for(uint8_t i = 0; i < XBOX_ONE_MAX_ENDPOINTS; i++) {
                 epInfo[i].epAddr = 0;
                 epInfo[i].maxPktSize = (i) ? 0 : 8;
+                epInfo[i].bmAttribs   = 0;
                 epInfo[i].bmSndToggle = 0;
                 epInfo[i].bmRcvToggle = 0;
                 epInfo[i].bmNakPower = (i) ? USB_NAK_NOWAIT : USB_NAK_MAX_POWER;
@@ -248,6 +249,7 @@ void XBOXONE::EndpointXtract(uint32_t conf, uint32_t iface, uint32_t alt, uint32
         // Fill the rest of endpoint data structure
         epInfo[index].epAddr = (pep->bEndpointAddress & 0x0F);
         epInfo[index].maxPktSize = (uint8_t)pep->wMaxPacketSize;
+        epInfo[index].bmAttribs  = pep->bmAttributes;
 #ifdef EXTRADEBUG
         PrintEndpointDescriptor(pep);
 #endif

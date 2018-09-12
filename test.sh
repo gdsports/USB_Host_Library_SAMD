@@ -47,10 +47,10 @@ CC="arduino --verify --board ${BOARD}"
 find . -name '*.ino' -print0 | xargs -0 -n 1 $CC
 # Install MIDI library for USBH_MIDI examples
 arduino --install-library "MIDI Library"
-# Install USB host library for SAMD
 cd $LIBDIR
 # Install TinyGPS for pl2303 example
 git clone https://github.com/mikalhart/TinyGPS.git
+# Install USB host library for SAMD
 if [ -d ~/Sync/USB_Host_Library_SAMD ]
 then
     ln -s ~/Sync/USB_Host_Library_SAMD .

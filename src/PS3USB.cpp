@@ -28,6 +28,7 @@ bPollEnable(false) // don't start polling before dongle is connected
         for(uint8_t i = 0; i < PS3_MAX_ENDPOINTS; i++) {
                 epInfo[i].epAddr = 0;
                 epInfo[i].maxPktSize = (i) ? 0 : 8;
+                epInfo[i].bmAttribs   = 0;
                 epInfo[i].bmSndToggle = 0;
                 epInfo[i].bmRcvToggle = 0;
                 epInfo[i].bmNakPower = (i) ? USB_NAK_NOWAIT : USB_NAK_MAX_POWER;
@@ -153,13 +154,13 @@ uint32_t PS3USB::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
         /* Initialize data structures for endpoints of device */
         epInfo[ PS3_OUTPUT_PIPE ].epAddr = 0x02; // PS3 output endpoint
-        epInfo[ PS3_OUTPUT_PIPE ].epAttribs = USB_TRANSFER_TYPE_INTERRUPT;
+        epInfo[ PS3_OUTPUT_PIPE ].bmAttribs = USB_TRANSFER_TYPE_INTERRUPT;
         epInfo[ PS3_OUTPUT_PIPE ].bmNakPower = USB_NAK_NOWAIT; // Only poll once for interrupt endpoints
         epInfo[ PS3_OUTPUT_PIPE ].maxPktSize = EP_MAXPKTSIZE;
         epInfo[ PS3_OUTPUT_PIPE ].bmSndToggle = 0;
         epInfo[ PS3_OUTPUT_PIPE ].bmRcvToggle = 0;
         epInfo[ PS3_INPUT_PIPE ].epAddr = 0x01; // PS3 report endpoint
-        epInfo[ PS3_INPUT_PIPE ].epAttribs = USB_TRANSFER_TYPE_INTERRUPT;
+        epInfo[ PS3_INPUT_PIPE ].bmAttribs = USB_TRANSFER_TYPE_INTERRUPT;
         epInfo[ PS3_INPUT_PIPE ].bmNakPower = USB_NAK_NOWAIT; // Only poll once for interrupt endpoints
         epInfo[ PS3_INPUT_PIPE ].maxPktSize = EP_MAXPKTSIZE;
         epInfo[ PS3_INPUT_PIPE ].bmSndToggle = 0;

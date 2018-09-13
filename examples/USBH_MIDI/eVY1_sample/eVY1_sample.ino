@@ -9,6 +9,15 @@
 #include <usbh_midi.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub(&UsbH);
 USBH_MIDI  Midi(&UsbH);
@@ -31,10 +40,10 @@ uint8_t exdata[] = {
 void setup()
 {
   vid = pid = 0;
-  Serial.begin(115200);
+  SerialDebug.begin(115200);
 
   if (UsbH.Init()) {
-    Serial.println("USB host did not start");
+    SerialDebug.println("USB host did not start");
     while (1); //halt
   }
   delay( 200 );

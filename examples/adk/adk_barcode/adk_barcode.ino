@@ -5,6 +5,15 @@
 #include <hidboot.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 USBHub Hub1(&UsbH);
 USBHub Hub2(&UsbH);
@@ -50,35 +59,32 @@ uint8_t keylcl;
   if( keylcl == 0x13 ) {
     rcode = adk.SndData( strlen( new_line ), (uint8_t *)new_line );
     if (rcode && rcode != USB_ERRORFLOW) {
-      Serial.print(F("\r\nData send: "));
-      Serial.print(rcode, HEX);
+      SerialDebug.print(F("\r\nData send: "));
+      SerialDebug.print(rcode, HEX);
     }
   }
   else {
     rcode = adk.SndData( 1, &keylcl );
     if (rcode && rcode != USB_ERRORFLOW) {
-      Serial.print(F("\r\nData send: "));
-      Serial.print(rcode, HEX);
+      SerialDebug.print(F("\r\nData send: "));
+      SerialDebug.print(rcode, HEX);
     }
   }
 
-  Serial.print((char) keylcl );
-  Serial.print(" : ");
-  Serial.println( keylcl, HEX );
+  SerialDebug.print((char) keylcl );
+  SerialDebug.print(" : ");
+  SerialDebug.println( keylcl, HEX );
 };
 
 KbdRptParser Prs;
 
 void setup()
 {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("\r\nADK demo start");
+  SerialDebug.begin(115200);
+  SerialDebug.println("\r\nADK demo start");
 
   if (UsbH.Init()) {
-    Serial.println("USB host failed to assert");
+    SerialDebug.println("USB host failed to assert");
     while(1); //halt
   }//if (UsbH.Init() == -1...
 

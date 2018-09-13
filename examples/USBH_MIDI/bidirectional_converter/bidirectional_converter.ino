@@ -56,16 +56,12 @@ void handle_sysex( byte* sysexmsg, unsigned sizeofsysex) {
 
 void setup()
 {
-#if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD)
-  Serial.begin(115200);
-#endif
   MIDI.turnThruOff();
   MIDI.begin(MIDI_CHANNEL_OMNI);
 #ifdef USBH_MIDI_SYSEX_ENABLE
   MIDI.setHandleSystemExclusive(handle_sysex);
 #endif
   if (UsbH.Init()) {
-    Serial.println("USB host did not start");
     while (1); //halt
   }
   delay( 200 );

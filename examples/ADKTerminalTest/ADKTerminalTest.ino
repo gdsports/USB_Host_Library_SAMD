@@ -18,10 +18,19 @@
 
 #define ARDUINO_MAIN
 //#include "variant.h"
-#include "Arduino.h" 
+#include "Arduino.h"
 #include <stdio.h>
 #include <adk.h>
 
+
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
 
 USBHost usb;
 ADK adk(&usb,"Arduino SA",
@@ -33,12 +42,11 @@ ADK adk(&usb,"Arduino SA",
 
 void setup(void)
 {
-  SERIAL_PORT_MONITOR.begin( 115200 );
-  while (!SERIAL_PORT_MONITOR); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-  SERIAL_PORT_MONITOR.println("\r\nADK demo start");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("\r\nADK demo start");
 
   if (usb.Init())
-	SERIAL_PORT_MONITOR.println("USB host did not start.");
+	SerialDebug.println("USB host did not start.");
 
   delay(20);
 }
@@ -65,11 +73,11 @@ void loop(void)
 	adk.RcvData(&nbread, buf);
 	if (nbread > 0)
 	{
-		SERIAL_PORT_MONITOR.print("RCV: ");
+		SerialDebug.print("RCV: ");
 		for (uint32_t i = 0; i < nbread; ++i)
 		{
-			SERIAL_PORT_MONITOR.print((char)buf[i]);
+			SerialDebug.print((char)buf[i]);
 		}
-		SERIAL_PORT_MONITOR.print("\r\n");
+		SerialDebug.print("\r\n");
 	}	
 }

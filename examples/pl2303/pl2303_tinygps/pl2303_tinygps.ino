@@ -3,6 +3,15 @@
 /* Mikal Hart's TinyGPS library */
 /* test_with_gps_device library example modified for PL2302 access */
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 /* USB support */
 #include <usbhub.h>
 
@@ -63,19 +72,16 @@ void printFloat(double f, int16_t digits = 2);
 void setup()
 {
 
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
 
-  Serial.print("Testing TinyGPS library v. "); Serial.println(TinyGPS::library_version());
-  Serial.println("by Mikal Hart");
-  Serial.println();
-  Serial.print("Sizeof(gpsobject) = "); Serial.println(sizeof(TinyGPS));
-  Serial.println();
+  SerialDebug.print("Testing TinyGPS library v. "); SerialDebug.println(TinyGPS::library_version());
+  SerialDebug.println("by Mikal Hart");
+  SerialDebug.println();
+  SerialDebug.print("Sizeof(gpsobject) = "); SerialDebug.println(sizeof(TinyGPS));
+  SerialDebug.println();
   /* USB Initialization */
   if (UsbH.Init()) {
-      Serial.println("USB host did not start");
+      SerialDebug.println("USB host did not start");
   }
 
   delay( 200 );
@@ -98,11 +104,11 @@ void loop()
     }//while (millis()...
 
     if (newdata) {
-      Serial.println("Acquired Data");
-      Serial.println("-------------");
+      SerialDebug.println("Acquired Data");
+      SerialDebug.println("-------------");
       gpsdump(gps);
-      Serial.println("-------------");
-      Serial.println();
+      SerialDebug.println("-------------");
+      SerialDebug.println();
     }//if( newdata...
   }//if( UsbH.getUsbTaskState() == USB_STATE_RUNNING...
 }
@@ -112,7 +118,7 @@ void printFloat(double number, int16_t digits)
   // Handle negative numbers
   if (number < 0.0)
   {
-     Serial.print('-');
+     SerialDebug.print('-');
      number = -number;
   }
 
@@ -126,18 +132,18 @@ void printFloat(double number, int16_t digits)
   // Extract the integer part of the number and print it
   uint32_t int_part = (uint32_t)number;
   double remainder = number - (double)int_part;
-  Serial.print(int_part);
+  SerialDebug.print(int_part);
 
   // Print the decimal point, but only if there are digits beyond
   if (digits > 0)
-    Serial.print(".");
+    SerialDebug.print(".");
 
   // Extract digits from the remainder one at a time
   while (digits-- > 0)
   {
     remainder *= 10.0;
     int toPrint = int(remainder);
-    Serial.print(toPrint);
+    SerialDebug.print(toPrint);
     remainder -= toPrint;
   }
 }
@@ -152,39 +158,39 @@ void gpsdump(TinyGPS &gps)
   unsigned short sentences, failed;
 
   gps.get_position(&lat, &lon, &age);
-  Serial.print("Lat/Long(10^-5 deg): "); Serial.print(lat); Serial.print(", "); Serial.print(lon);
-  Serial.print(" Fix age: "); Serial.print(age); Serial.println("ms.");
+  SerialDebug.print("Lat/Long(10^-5 deg): "); SerialDebug.print(lat); SerialDebug.print(", "); SerialDebug.print(lon);
+  SerialDebug.print(" Fix age: "); SerialDebug.print(age); SerialDebug.println("ms.");
 
   feedgps(); // If we don't feed the gps during this long routine, we may drop characters and get checksum errors
 
   gps.f_get_position(&flat, &flon, &age);
-  Serial.print("Lat/Long(float): "); printFloat(flat, 5); Serial.print(", "); printFloat(flon, 5);
-  Serial.print(" Fix age: "); Serial.print(age); Serial.println("ms.");
+  SerialDebug.print("Lat/Long(float): "); printFloat(flat, 5); SerialDebug.print(", "); printFloat(flon, 5);
+  SerialDebug.print(" Fix age: "); SerialDebug.print(age); SerialDebug.println("ms.");
 
   feedgps();
 
   gps.get_datetime(&date, &time, &age);
-  Serial.print("Date(ddmmyy): "); Serial.print(date); Serial.print(" Time(hhmmsscc): "); Serial.print(time);
-  Serial.print(" Fix age: "); Serial.print(age); Serial.println("ms.");
+  SerialDebug.print("Date(ddmmyy): "); SerialDebug.print(date); SerialDebug.print(" Time(hhmmsscc): "); SerialDebug.print(time);
+  SerialDebug.print(" Fix age: "); SerialDebug.print(age); SerialDebug.println("ms.");
 
   feedgps();
 
   gps.crack_datetime(&year, &month, &day, &hour, &minute, &second, &hundredths, &age);
-  Serial.print("Date: "); Serial.print(static_cast<int>(month)); Serial.print("/"); Serial.print(static_cast<int>(day)); Serial.print("/"); Serial.print(year);
-  Serial.print("  Time: "); Serial.print(static_cast<int>(hour)); Serial.print(":"); Serial.print(static_cast<int>(minute)); Serial.print(":"); Serial.print(static_cast<int>(second)); Serial.print("."); Serial.print(static_cast<int>(hundredths));
-  Serial.print("  Fix age: ");  Serial.print(age); Serial.println("ms.");
+  SerialDebug.print("Date: "); SerialDebug.print(static_cast<int>(month)); SerialDebug.print("/"); SerialDebug.print(static_cast<int>(day)); SerialDebug.print("/"); SerialDebug.print(year);
+  SerialDebug.print("  Time: "); SerialDebug.print(static_cast<int>(hour)); SerialDebug.print(":"); SerialDebug.print(static_cast<int>(minute)); SerialDebug.print(":"); SerialDebug.print(static_cast<int>(second)); SerialDebug.print("."); SerialDebug.print(static_cast<int>(hundredths));
+  SerialDebug.print("  Fix age: ");  SerialDebug.print(age); SerialDebug.println("ms.");
 
   feedgps();
 
-  Serial.print("Alt(cm): "); Serial.print(gps.altitude()); Serial.print(" Course(10^-2 deg): "); Serial.print(gps.course()); Serial.print(" Speed(10^-2 knots): "); Serial.println(gps.speed());
-  Serial.print("Alt(float): "); printFloat(gps.f_altitude()); Serial.print(" Course(float): "); printFloat(gps.f_course()); Serial.println();
-  Serial.print("Speed(knots): "); printFloat(gps.f_speed_knots()); Serial.print(" (mph): ");  printFloat(gps.f_speed_mph());
-  Serial.print(" (mps): "); printFloat(gps.f_speed_mps()); Serial.print(" (kmph): "); printFloat(gps.f_speed_kmph()); Serial.println();
+  SerialDebug.print("Alt(cm): "); SerialDebug.print(gps.altitude()); SerialDebug.print(" Course(10^-2 deg): "); SerialDebug.print(gps.course()); SerialDebug.print(" Speed(10^-2 knots): "); SerialDebug.println(gps.speed());
+  SerialDebug.print("Alt(float): "); printFloat(gps.f_altitude()); SerialDebug.print(" Course(float): "); printFloat(gps.f_course()); SerialDebug.println();
+  SerialDebug.print("Speed(knots): "); printFloat(gps.f_speed_knots()); SerialDebug.print(" (mph): ");  printFloat(gps.f_speed_mph());
+  SerialDebug.print(" (mps): "); printFloat(gps.f_speed_mps()); SerialDebug.print(" (kmph): "); printFloat(gps.f_speed_kmph()); SerialDebug.println();
 
   feedgps();
 
   gps.stats(&chars, &sentences, &failed);
-  Serial.print("Stats: characters: "); Serial.print(chars); Serial.print(" sentences: "); Serial.print(sentences); Serial.print(" failed checksum: "); Serial.println(failed);
+  SerialDebug.print("Stats: characters: "); SerialDebug.print(chars); SerialDebug.print(" sentences: "); SerialDebug.print(sentences); SerialDebug.print(" failed checksum: "); SerialDebug.println(failed);
 }
 
 bool feedgps()

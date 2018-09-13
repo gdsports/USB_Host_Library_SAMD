@@ -7,6 +7,15 @@
 #include <SPP.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -18,15 +27,12 @@ SPP SerialBT(&Btd); // This will set the name to the defaults: "Arduino" and the
 bool firstMessage = true;
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nSPP Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nSPP Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task(); // The SPP data is actually not send until this is called, one could call SerialBT.send() directly as well
@@ -36,10 +42,10 @@ void loop() {
       firstMessage = false;
       SerialBT.println(F("Hello from Arduino")); // Send welcome message
     }
-    if (Serial.available())
-      SerialBT.write(Serial.read());
+    if (SerialDebug.available())
+      SerialBT.write(SerialDebug.read());
     if (SerialBT.available())
-      Serial.write(SerialBT.read());
+      SerialDebug.write(SerialBT.read());
   }
   else
     firstMessage = true;

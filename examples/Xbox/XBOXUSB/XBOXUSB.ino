@@ -6,102 +6,108 @@
 
 #include <XBOXUSB.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 XBOXUSB Xbox(&UsbH);
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nXBOX USB Library Started"));
+  SerialDebug.print(F("\r\nXBOX USB Library Started"));
 }
 void loop() {
   UsbH.Task();
   if (Xbox.Xbox360Connected) {
     if (Xbox.getButtonPress(L2) || Xbox.getButtonPress(R2)) {
-      Serial.print("L2: ");
-      Serial.print(Xbox.getButtonPress(L2));
-      Serial.print("\tR2: ");
-      Serial.println(Xbox.getButtonPress(R2));
+      SerialDebug.print("L2: ");
+      SerialDebug.print(Xbox.getButtonPress(L2));
+      SerialDebug.print("\tR2: ");
+      SerialDebug.println(Xbox.getButtonPress(R2));
       Xbox.setRumbleOn(Xbox.getButtonPress(L2), Xbox.getButtonPress(R2));
     } else
       Xbox.setRumbleOn(0, 0);
 
     if (Xbox.getAnalogHat(LeftHatX) > 7500 || Xbox.getAnalogHat(LeftHatX) < -7500 || Xbox.getAnalogHat(LeftHatY) > 7500 || Xbox.getAnalogHat(LeftHatY) < -7500 || Xbox.getAnalogHat(RightHatX) > 7500 || Xbox.getAnalogHat(RightHatX) < -7500 || Xbox.getAnalogHat(RightHatY) > 7500 || Xbox.getAnalogHat(RightHatY) < -7500) {
       if (Xbox.getAnalogHat(LeftHatX) > 7500 || Xbox.getAnalogHat(LeftHatX) < -7500) {
-        Serial.print(F("LeftHatX: "));
-        Serial.print(Xbox.getAnalogHat(LeftHatX));
-        Serial.print("\t");
+        SerialDebug.print(F("LeftHatX: "));
+        SerialDebug.print(Xbox.getAnalogHat(LeftHatX));
+        SerialDebug.print("\t");
       }
       if (Xbox.getAnalogHat(LeftHatY) > 7500 || Xbox.getAnalogHat(LeftHatY) < -7500) {
-        Serial.print(F("LeftHatY: "));
-        Serial.print(Xbox.getAnalogHat(LeftHatY));
-        Serial.print("\t");
+        SerialDebug.print(F("LeftHatY: "));
+        SerialDebug.print(Xbox.getAnalogHat(LeftHatY));
+        SerialDebug.print("\t");
       }
       if (Xbox.getAnalogHat(RightHatX) > 7500 || Xbox.getAnalogHat(RightHatX) < -7500) {
-        Serial.print(F("RightHatX: "));
-        Serial.print(Xbox.getAnalogHat(RightHatX));
-        Serial.print("\t");
+        SerialDebug.print(F("RightHatX: "));
+        SerialDebug.print(Xbox.getAnalogHat(RightHatX));
+        SerialDebug.print("\t");
       }
       if (Xbox.getAnalogHat(RightHatY) > 7500 || Xbox.getAnalogHat(RightHatY) < -7500) {
-        Serial.print(F("RightHatY: "));
-        Serial.print(Xbox.getAnalogHat(RightHatY));
+        SerialDebug.print(F("RightHatY: "));
+        SerialDebug.print(Xbox.getAnalogHat(RightHatY));
       }
-      Serial.println();
+      SerialDebug.println();
     }
 
     if (Xbox.getButtonClick(UP)) {
       Xbox.setLedOn(LED1);
-      Serial.println(F("Up"));
+      SerialDebug.println(F("Up"));
     }
     if (Xbox.getButtonClick(DOWN)) {
       Xbox.setLedOn(LED4);
-      Serial.println(F("Down"));
+      SerialDebug.println(F("Down"));
     }
     if (Xbox.getButtonClick(LEFT)) {
       Xbox.setLedOn(LED3);
-      Serial.println(F("Left"));
+      SerialDebug.println(F("Left"));
     }
     if (Xbox.getButtonClick(RIGHT)) {
       Xbox.setLedOn(LED2);
-      Serial.println(F("Right"));
+      SerialDebug.println(F("Right"));
     }
 
     if (Xbox.getButtonClick(START)) {
       Xbox.setLedMode(ALTERNATING);
-      Serial.println(F("Start"));
+      SerialDebug.println(F("Start"));
     }
     if (Xbox.getButtonClick(BACK)) {
       Xbox.setLedBlink(ALL);
-      Serial.println(F("Back"));
+      SerialDebug.println(F("Back"));
     }
     if (Xbox.getButtonClick(L3))
-      Serial.println(F("L3"));
+      SerialDebug.println(F("L3"));
     if (Xbox.getButtonClick(R3))
-      Serial.println(F("R3"));
+      SerialDebug.println(F("R3"));
 
     if (Xbox.getButtonClick(L1))
-      Serial.println(F("L1"));
+      SerialDebug.println(F("L1"));
     if (Xbox.getButtonClick(R1))
-      Serial.println(F("R1"));
+      SerialDebug.println(F("R1"));
     if (Xbox.getButtonClick(XBOX)) {
       Xbox.setLedMode(ROTATING);
-      Serial.println(F("Xbox"));
+      SerialDebug.println(F("Xbox"));
     }
 
     if (Xbox.getButtonClick(A))
-      Serial.println(F("A"));
+      SerialDebug.println(F("A"));
     if (Xbox.getButtonClick(B))
-      Serial.println(F("B"));
+      SerialDebug.println(F("B"));
     if (Xbox.getButtonClick(X))
-      Serial.println(F("X"));
+      SerialDebug.println(F("X"));
     if (Xbox.getButtonClick(Y))
-      Serial.println(F("Y"));
+      SerialDebug.println(F("Y"));
   }
   delay(1);
 }

@@ -7,6 +7,15 @@
 #include <Wii.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -16,28 +25,25 @@ WII Wii(&Btd, PAIR); // This will start an inquiry and then pair with your Wii B
 //WII Wii(&Btd); // After that you can simply create the instance like so and then press the power button on the Wii Balance Board
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nWii Balance Board Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nWii Balance Board Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task();
   if (Wii.wiiBalanceBoardConnected) {
-    Serial.print(F("\r\nWeight: "));
+    SerialDebug.print(F("\r\nWeight: "));
     for (uint8_t i = 0; i < 4; i++) {
-      Serial.print(Wii.getWeight((BalanceBoardEnum)i));
-      Serial.print(F("\t"));
+      SerialDebug.print(Wii.getWeight((BalanceBoardEnum)i));
+      SerialDebug.print(F("\t"));
     }
-    Serial.print(F("Total Weight: "));
-    Serial.print(Wii.getTotalWeight());
+    SerialDebug.print(F("Total Weight: "));
+    SerialDebug.print(Wii.getTotalWeight());
     if (Wii.getButtonClick(A)) {
-      Serial.print(F("\r\nA"));
+      SerialDebug.print(F("\r\nA"));
       //Wii.setLedToggle(LED1); // The Wii Balance Board has one LED as well
       Wii.disconnect();
     }

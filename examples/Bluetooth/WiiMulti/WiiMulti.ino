@@ -8,6 +8,15 @@
 #include <Wii.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -23,15 +32,12 @@ void setup() {
     Wii[i]->attachOnInit(onInit); // onInit() is called upon a new connection - you can call the function whatever you like
   }
 
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nWiimote Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nWiimote Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task();
@@ -39,7 +45,7 @@ void loop() {
   for (uint8_t i = 0; i < length; i++) {
     if (Wii[i]->wiimoteConnected) {
       if (Wii[i]->getButtonClick(HOME)) { // You can use getButtonPress to see if the button is held down
-        Serial.print(F("\r\nHOME"));
+        SerialDebug.print(F("\r\nHOME"));
         Wii[i]->disconnect();
         oldControllerState[i] = false; // Reset value
       }
@@ -47,70 +53,70 @@ void loop() {
         if (Wii[i]->getButtonClick(LEFT)) {
           Wii[i]->setLedOff();
           Wii[i]->setLedOn(LED1);
-          Serial.print(F("\r\nLeft"));
+          SerialDebug.print(F("\r\nLeft"));
         }
         if (Wii[i]->getButtonClick(RIGHT)) {
           Wii[i]->setLedOff();
           Wii[i]->setLedOn(LED3);
-          Serial.print(F("\r\nRight"));
+          SerialDebug.print(F("\r\nRight"));
         }
         if (Wii[i]->getButtonClick(DOWN)) {
           Wii[i]->setLedOff();
           Wii[i]->setLedOn(LED4);
-          Serial.print(F("\r\nDown"));
+          SerialDebug.print(F("\r\nDown"));
         }
         if (Wii[i]->getButtonClick(UP)) {
           Wii[i]->setLedOff();
           Wii[i]->setLedOn(LED2);
-          Serial.print(F("\r\nUp"));
+          SerialDebug.print(F("\r\nUp"));
         }
 
         if (Wii[i]->getButtonClick(PLUS))
-          Serial.print(F("\r\nPlus"));
+          SerialDebug.print(F("\r\nPlus"));
         if (Wii[i]->getButtonClick(MINUS))
-          Serial.print(F("\r\nMinus"));
+          SerialDebug.print(F("\r\nMinus"));
 
         if (Wii[i]->getButtonClick(ONE))
-          Serial.print(F("\r\nOne"));
+          SerialDebug.print(F("\r\nOne"));
         if (Wii[i]->getButtonClick(TWO))
-          Serial.print(F("\r\nTwo"));
+          SerialDebug.print(F("\r\nTwo"));
 
         if (Wii[i]->getButtonClick(A)) {
           printAngle[i] = !printAngle[i];
-          Serial.print(F("\r\nA"));
+          SerialDebug.print(F("\r\nA"));
         }
         if (Wii[i]->getButtonClick(B)) {
           Wii[i]->setRumbleToggle();
-          Serial.print(F("\r\nB"));
+          SerialDebug.print(F("\r\nB"));
         }
       }
       if (printAngle[i]) {
-        Serial.print(F("\r\nPitch: "));
-        Serial.print(Wii[i]->getPitch());
-        Serial.print(F("\tRoll: "));
-        Serial.print(Wii[i]->getRoll());
+        SerialDebug.print(F("\r\nPitch: "));
+        SerialDebug.print(Wii[i]->getPitch());
+        SerialDebug.print(F("\tRoll: "));
+        SerialDebug.print(Wii[i]->getRoll());
         if (Wii[i]->motionPlusConnected) {
-          Serial.print(F("\tYaw: "));
-          Serial.print(Wii[i]->getYaw());
+          SerialDebug.print(F("\tYaw: "));
+          SerialDebug.print(Wii[i]->getYaw());
         }
         if (Wii[i]->nunchuckConnected) {
-          Serial.print(F("\tNunchuck Pitch: "));
-          Serial.print(Wii[i]->getNunchuckPitch());
-          Serial.print(F("\tNunchuck Roll: "));
-          Serial.print(Wii[i]->getNunchuckRoll());
+          SerialDebug.print(F("\tNunchuck Pitch: "));
+          SerialDebug.print(Wii[i]->getNunchuckPitch());
+          SerialDebug.print(F("\tNunchuck Roll: "));
+          SerialDebug.print(Wii[i]->getNunchuckRoll());
         }
       }
     }
     if (Wii[i]->nunchuckConnected) {
       if (Wii[i]->getButtonClick(Z))
-        Serial.print(F("\r\nZ"));
+        SerialDebug.print(F("\r\nZ"));
       if (Wii[i]->getButtonClick(C))
-        Serial.print(F("\r\nC"));
+        SerialDebug.print(F("\r\nC"));
       if (Wii[i]->getAnalogHat(HatX) > 137 ||  Wii[i]->getAnalogHat(HatX) < 117 || Wii[i]->getAnalogHat(HatY) > 137 || Wii[i]->getAnalogHat(HatY) < 117) {
-        Serial.print(F("\r\nHatX: "));
-        Serial.print(Wii[i]->getAnalogHat(HatX));
-        Serial.print(F("\tHatY: "));
-        Serial.print(Wii[i]->getAnalogHat(HatY));
+        SerialDebug.print(F("\r\nHatX: "));
+        SerialDebug.print(Wii[i]->getAnalogHat(HatX));
+        SerialDebug.print(F("\tHatY: "));
+        SerialDebug.print(Wii[i]->getAnalogHat(HatY));
       }
     }
   }

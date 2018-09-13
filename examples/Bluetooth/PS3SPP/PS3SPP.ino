@@ -13,6 +13,15 @@
 #include <SPP.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -28,15 +37,12 @@ bool firstMessage = true;
 String output = ""; // We will store the data in this string
 
 void setup() {
-  Serial.begin(115200); // This wil lprint the debugging from the libraries
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200); // This wil lprint the debugging from the libraries
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nBluetooth Library Started"));
+  SerialDebug.print(F("\r\nBluetooth Library Started"));
   output.reserve(200); // Reserve 200 bytes for the output string
 }
 void loop() {
@@ -47,10 +53,10 @@ void loop() {
       firstMessage = false;
       SerialBT.println(F("Hello from Arduino")); // Send welcome message
     }
-    if (Serial.available())
-      SerialBT.write(Serial.read());
+    if (SerialDebug.available())
+      SerialBT.write(SerialDebug.read());
     if (SerialBT.available())
-      Serial.write(SerialBT.read());
+      SerialDebug.write(SerialBT.read());
   }
   else
     firstMessage = true;
@@ -81,7 +87,7 @@ void loop() {
       }
     }
     if (output != "") {
-      Serial.println(output);
+      SerialDebug.println(output);
       if (SerialBT.connected)
         SerialBT.println(output);
       output = ""; // Reset output string
@@ -146,7 +152,7 @@ void loop() {
 
       if (output != "") {
         String string = "PS3 Controller" + output;
-        Serial.println(string);
+        SerialDebug.println(string);
         if (SerialBT.connected)
           SerialBT.println(string);
       }

@@ -200,7 +200,7 @@ class HIDBoot : public HID //public USBDeviceConfig, public UsbConfigXtracter
 
 	void Initialize();
 
-	virtual HIDReportParser* GetReportParser(uint32_t id) { 
+	virtual HIDReportParser* GetReportParser(uint32_t id) {
                 return pRptParser[id];
         };
 

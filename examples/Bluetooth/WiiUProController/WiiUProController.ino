@@ -7,6 +7,15 @@
 #include <Wii.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -16,83 +25,80 @@ WII Wii(&Btd, PAIR); // This will start an inquiry and then pair with your Wiimo
 //WII Wii(&Btd); // After that you can simply create the instance like so and then press any button on the Wiimote
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nWiimote Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nWiimote Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task();
   if (Wii.wiiUProControllerConnected) {
     if (Wii.getButtonClick(HOME)) { // You can use getButtonPress to see if the button is held down
-      Serial.print(F("\r\nHome"));
+      SerialDebug.print(F("\r\nHome"));
       Wii.disconnect();
     }
     else {
       if (Wii.getButtonClick(LEFT)) {
         Wii.setLedOff();
         Wii.setLedOn(LED1);
-        Serial.print(F("\r\nLeft"));
+        SerialDebug.print(F("\r\nLeft"));
       }
       if (Wii.getButtonClick(RIGHT)) {
         Wii.setLedOff();
         Wii.setLedOn(LED3);
-        Serial.print(F("\r\nRight"));
+        SerialDebug.print(F("\r\nRight"));
       }
       if (Wii.getButtonClick(DOWN)) {
         Wii.setLedOff();
         Wii.setLedOn(LED4);
-        Serial.print(F("\r\nDown"));
+        SerialDebug.print(F("\r\nDown"));
       }
       if (Wii.getButtonClick(UP)) {
         Wii.setLedOff();
         Wii.setLedOn(LED2);
-        Serial.print(F("\r\nUp"));
+        SerialDebug.print(F("\r\nUp"));
       }
 
       if (Wii.getButtonClick(PLUS))
-        Serial.print(F("\r\nPlus"));
+        SerialDebug.print(F("\r\nPlus"));
       if (Wii.getButtonClick(MINUS))
-        Serial.print(F("\r\nMinus"));
+        SerialDebug.print(F("\r\nMinus"));
 
       if (Wii.getButtonClick(A))
-        Serial.print(F("\r\nA"));
+        SerialDebug.print(F("\r\nA"));
       if (Wii.getButtonClick(B)) {
         Wii.setRumbleToggle();
-        Serial.print(F("\r\nB"));
+        SerialDebug.print(F("\r\nB"));
       }
       if (Wii.getButtonClick(X))
-        Serial.print(F("\r\nX"));
+        SerialDebug.print(F("\r\nX"));
       if (Wii.getButtonClick(Y))
-        Serial.print(F("\r\nY"));
+        SerialDebug.print(F("\r\nY"));
 
       if (Wii.getButtonClick(L))
-        Serial.print(F("\r\nL"));
+        SerialDebug.print(F("\r\nL"));
       if (Wii.getButtonClick(R))
-        Serial.print(F("\r\nR"));
+        SerialDebug.print(F("\r\nR"));
       if (Wii.getButtonClick(ZL))
-        Serial.print(F("\r\nZL"));
+        SerialDebug.print(F("\r\nZL"));
       if (Wii.getButtonClick(ZR))
-        Serial.print(F("\r\nZR"));
+        SerialDebug.print(F("\r\nZR"));
       if (Wii.getButtonClick(L3))
-        Serial.print(F("\r\nL3"));
+        SerialDebug.print(F("\r\nL3"));
       if (Wii.getButtonClick(R3))
-        Serial.print(F("\r\nR3"));
+        SerialDebug.print(F("\r\nR3"));
     }
     if (Wii.getAnalogHat(LeftHatX) > 2200 || Wii.getAnalogHat(LeftHatX) < 1800 || Wii.getAnalogHat(LeftHatY) > 2200 || Wii.getAnalogHat(LeftHatY) < 1800 || Wii.getAnalogHat(RightHatX) > 2200 ||  Wii.getAnalogHat(RightHatX) < 1800 || Wii.getAnalogHat(RightHatY) > 2200 || Wii.getAnalogHat(RightHatY) < 1800) {
-      Serial.print(F("\r\nLeftHatX: "));
-      Serial.print(Wii.getAnalogHat(LeftHatX));
-      Serial.print(F("\tLeftHatY: "));
-      Serial.print(Wii.getAnalogHat(LeftHatY));
-      Serial.print(F("\tRightHatX: "));
-      Serial.print(Wii.getAnalogHat(RightHatX));
-      Serial.print(F("\tRightHatY: "));
-      Serial.print(Wii.getAnalogHat(RightHatY));
+      SerialDebug.print(F("\r\nLeftHatX: "));
+      SerialDebug.print(Wii.getAnalogHat(LeftHatX));
+      SerialDebug.print(F("\tLeftHatY: "));
+      SerialDebug.print(Wii.getAnalogHat(LeftHatY));
+      SerialDebug.print(F("\tRightHatX: "));
+      SerialDebug.print(Wii.getAnalogHat(RightHatX));
+      SerialDebug.print(F("\tRightHatY: "));
+      SerialDebug.print(Wii.getAnalogHat(RightHatY));
     }
   }
 }

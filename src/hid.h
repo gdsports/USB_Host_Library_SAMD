@@ -164,7 +164,7 @@ public:
 	};
 
 	const USBHost* GetUsb() {
-		return pUsb; 
+		return pUsb;
 	};
 	virtual uint32_t SetReportParser(uint32_t id, HIDReportParser *prs);
 

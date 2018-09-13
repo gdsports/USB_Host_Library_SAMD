@@ -6,19 +6,25 @@
 
 #include <PSBuzz.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 PSBuzz Buzz(&UsbH);
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); // Halt
   }
-  Serial.println(F("\r\nPS Buzz Library Started"));
+  SerialDebug.println(F("\r\nPS Buzz Library Started"));
 }
 
 void loop() {
@@ -28,16 +34,16 @@ void loop() {
     for (uint8_t i = 0; i < 4; i++) {
       if (Buzz.getButtonClick(RED, i)) {
         Buzz.setLedToggle(i); // Toggle the LED
-        Serial.println(F("RED"));
+        SerialDebug.println(F("RED"));
       }
       if (Buzz.getButtonClick(YELLOW, i))
-        Serial.println(F("YELLOW"));
+        SerialDebug.println(F("YELLOW"));
       if (Buzz.getButtonClick(GREEN, i))
-        Serial.println(F("GREEN"));
+        SerialDebug.println(F("GREEN"));
       if (Buzz.getButtonClick(ORANGE, i))
-        Serial.println(F("ORANGE"));
+        SerialDebug.println(F("ORANGE"));
       if (Buzz.getButtonClick(BLUE, i))
-        Serial.println(F("BLUE"));
+        SerialDebug.println(F("BLUE"));
     }
   }
 }

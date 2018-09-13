@@ -9,6 +9,15 @@
 #include "KeyboardParser.h"
 #include "MouseParser.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 BTD Btd(&UsbH); // You have to create the Bluetooth Dongle instance like so
@@ -25,12 +34,9 @@ KbdRptParser keyboardPrs;
 MouseRptParser mousePrs;
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); // Halt
   }
 
@@ -42,7 +48,7 @@ void setup() {
   bthid.setProtocolMode(HID_BOOT_PROTOCOL); // Boot Protocol Mode
   //bthid.setProtocolMode(HID_RPT_PROTOCOL); // Report Protocol Mode
 
-  Serial.print(F("\r\nHID Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nHID Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task();

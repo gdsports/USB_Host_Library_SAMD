@@ -1,6 +1,15 @@
 #include <hidboot.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class MouseRptParser : public MouseReportParser
 {
 protected:
@@ -14,34 +23,34 @@ protected:
 };
 void MouseRptParser::OnMouseMove(MOUSEINFO *mi)
 {
-    Serial.print("dx=");
-    Serial.print(mi->dX, DEC);
-    Serial.print(" dy=");
-    Serial.println(mi->dY, DEC);
+    SerialDebug.print("dx=");
+    SerialDebug.print(mi->dX, DEC);
+    SerialDebug.print(" dy=");
+    SerialDebug.println(mi->dY, DEC);
 };
 void MouseRptParser::OnLeftButtonUp	(MOUSEINFO *mi)
 {
-    Serial.println("L Butt Up");
+    SerialDebug.println("L Butt Up");
 };
 void MouseRptParser::OnLeftButtonDown	(MOUSEINFO *mi)
 {
-    Serial.println("L Butt Dn");
+    SerialDebug.println("L Butt Dn");
 };
 void MouseRptParser::OnRightButtonUp	(MOUSEINFO *mi)
 {
-    Serial.println("R Butt Up");
+    SerialDebug.println("R Butt Up");
 };
 void MouseRptParser::OnRightButtonDown	(MOUSEINFO *mi)
 {
-    Serial.println("R Butt Dn");
+    SerialDebug.println("R Butt Dn");
 };
 void MouseRptParser::OnMiddleButtonUp	(MOUSEINFO *mi)
 {
-    Serial.println("M Butt Up");
+    SerialDebug.println("M Butt Up");
 };
 void MouseRptParser::OnMiddleButtonDown	(MOUSEINFO *mi)
 {
-    Serial.println("M Butt Dn");
+    SerialDebug.println("M Butt Dn");
 };
 
 USBHost     UsbH;
@@ -52,14 +61,11 @@ MouseRptParser                               Prs;
 
 void setup()
 {
-    Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-    while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-    Serial.println("Start");
+    SerialDebug.begin( 115200 );
+    SerialDebug.println("Start");
 
     if (UsbH.Init())
-        Serial.println("USB host did not start.");
+        SerialDebug.println("USB host did not start.");
 
     delay( 200 );
 

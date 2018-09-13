@@ -17,6 +17,15 @@
 #endif
 
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 ADK adk(&UsbH, "TKJElectronics", // Manufacturer Name
               "ArduinoBlinkLED", // Model Name
@@ -29,16 +38,13 @@ uint32_t timer;
 bool connected;
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print("\r\nUSB host failed to assert");
+    SerialDebug.print("\r\nUSB host failed to assert");
     while (1); // halt
   }
   pinMode(LED, OUTPUT);
-  Serial.print("\r\nArduino Blink LED Started");
+  SerialDebug.print("\r\nArduino Blink LED Started");
 }
 
 void loop() {
@@ -47,18 +53,18 @@ void loop() {
   if (adk.isReady()) {
     if (!connected) {
       connected = true;
-      Serial.print(F("\r\nConnected to accessory"));
+      SerialDebug.print(F("\r\nConnected to accessory"));
     }
 
     uint8_t msg[1];
     uint16_t len = sizeof(msg);
     uint8_t rcode = adk.RcvData(&len, msg);
     if (rcode && rcode != USB_ERRORFLOW) {
-      Serial.print(F("\r\nData rcv: "));
-      Serial.print(rcode, HEX);
+      SerialDebug.print(F("\r\nData rcv: "));
+      SerialDebug.print(rcode, HEX);
     } else if (len > 0) {
-      Serial.print(F("\r\nData Packet: "));
-      Serial.print(msg[0]);
+      SerialDebug.print(F("\r\nData Packet: "));
+      SerialDebug.print(msg[0]);
       digitalWrite(LED, msg[0] ? HIGH : LOW);
     }
 
@@ -66,17 +72,17 @@ void loop() {
       timer = (uint32_t)millis();
       rcode = adk.SndData(sizeof(timer), (uint8_t*)&timer);
       if (rcode && rcode != USB_ERRORFLOW) {
-        Serial.print(F("\r\nData send: "));
-        Serial.print(rcode, HEX);
+        SerialDebug.print(F("\r\nData send: "));
+        SerialDebug.print(rcode, HEX);
       } else if (rcode != USB_ERRORFLOW) {
-        Serial.print(F("\r\nTimer: "));
-        Serial.print(timer);
+        SerialDebug.print(F("\r\nTimer: "));
+        SerialDebug.print(timer);
       }
     }
   } else {
     if (connected) {
       connected = false;
-      Serial.print(F("\r\nDisconnected from accessory"));
+      SerialDebug.print(F("\r\nDisconnected from accessory"));
       digitalWrite(LED, LOW);
     }
   }

@@ -2,6 +2,15 @@
 
 #include "pgmstrings.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost     UsbH;
 //USBHub  Hub1(&UsbH);
 //USBHub  Hub2(&UsbH);
@@ -11,45 +20,51 @@ USBHost     UsbH;
 //USBHub  Hub6(&UsbH);
 //USBHub  Hub7(&UsbH);
 
+void print_hex(int v, int num_places);
+void printintfdescr( uint8_t* descr_ptr );
+uint8_t getconfdescr( uint8_t addr, uint8_t conf );
+void printconfdescr( uint8_t* descr_ptr );
+void printunkdescr( uint8_t* descr_ptr );
+void printepdescr( uint8_t* descr_ptr );
+void printProgStr(const prog_char str[]);
+void printHIDdescr( uint8_t* descr_ptr );
+
 void PrintAllAddresses(UsbDeviceDefinition *pdev)
 {
   UsbDeviceAddress adr;
   adr.devAddress = pdev->address.devAddress;
-  Serial.print("\r\nAddr:");
-  Serial.print(adr.devAddress, HEX);
-  Serial.print("(");
-  Serial.print(adr.bmHub, HEX);
-  Serial.print(".");
-  Serial.print(adr.bmParent, HEX);
-  Serial.print(".");
-  Serial.print(adr.bmAddress, HEX);
-  Serial.println(")");
+  SerialDebug.print("\r\nAddr:");
+  SerialDebug.print(adr.devAddress, HEX);
+  SerialDebug.print("(");
+  SerialDebug.print(adr.bmHub, HEX);
+  SerialDebug.print(".");
+  SerialDebug.print(adr.bmParent, HEX);
+  SerialDebug.print(".");
+  SerialDebug.print(adr.bmAddress, HEX);
+  SerialDebug.println(")");
 }
 
 void PrintAddress(uint8_t addr)
 {
   UsbDeviceAddress adr;
   adr.devAddress = addr;
-  Serial.print("\r\nADDR:\t");
-  Serial.println(adr.devAddress, HEX);
-  Serial.print("DEV:\t");
-  Serial.println(adr.bmAddress, HEX);
-  Serial.print("PRNT:\t");
-  Serial.println(adr.bmParent, HEX);
-  Serial.print("HUB:\t");
-  Serial.println(adr.bmHub, HEX);
+  SerialDebug.print("\r\nADDR:\t");
+  SerialDebug.println(adr.devAddress, HEX);
+  SerialDebug.print("DEV:\t");
+  SerialDebug.println(adr.bmAddress, HEX);
+  SerialDebug.print("PRNT:\t");
+  SerialDebug.println(adr.bmParent, HEX);
+  SerialDebug.print("HUB:\t");
+  SerialDebug.println(adr.bmHub, HEX);
 }
 
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("Start");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("Start");
 
   if (UsbH.Init())
-    Serial.println("USB host did not start.");
+    SerialDebug.println("USB host did not start.");
 
   delay( 200 );
 }
@@ -67,7 +82,7 @@ void PrintDescriptors(uint8_t addr)
     printProgStr(Gen_Error_str);
     print_hex( rcode, 8 );
   }
-  Serial.print("\r\n");
+  SerialDebug.print("\r\n");
 
   for (int i = 0; i < num_conf; i++)
   {
@@ -77,15 +92,15 @@ void PrintDescriptors(uint8_t addr)
       printProgStr(Gen_Error_str);
       print_hex(rcode, 8);
     }
-    Serial.println("\r\n");
+    SerialDebug.println("\r\n");
   }
 }
 
 void PrintAllDescriptors(UsbDeviceDefinition *pdev)
 {
-  Serial.println("\r\n");
+  SerialDebug.println("\r\n");
   print_hex(pdev->address.devAddress, 8);
-  Serial.println("\r\n--");
+  SerialDebug.println("\r\n--");
   PrintDescriptors( pdev->address.devAddress );
 }
 
@@ -154,37 +169,37 @@ void printhubdescr(uint8_t *descrptr, uint8_t addr)
 
   printProgStr(PSTR("\r\n\r\nHub Descriptor:\r\n"));
   printProgStr(PSTR("bDescLength:\t\t"));
-  Serial.println(pHub->bDescLength, HEX);
+  SerialDebug.println(pHub->bDescLength, HEX);
 
   printProgStr(PSTR("bDescriptorType:\t"));
-  Serial.println(pHub->bDescriptorType, HEX);
+  SerialDebug.println(pHub->bDescriptorType, HEX);
 
   printProgStr(PSTR("bNbrPorts:\t\t"));
-  Serial.println(pHub->bNbrPorts, HEX);
+  SerialDebug.println(pHub->bNbrPorts, HEX);
 
   printProgStr(PSTR("LogPwrSwitchMode:\t"));
-  Serial.println(pHub->LogPwrSwitchMode, BIN);
+  SerialDebug.println(pHub->LogPwrSwitchMode, BIN);
 
   printProgStr(PSTR("CompoundDevice:\t\t"));
-  Serial.println(pHub->CompoundDevice, BIN);
+  SerialDebug.println(pHub->CompoundDevice, BIN);
 
   printProgStr(PSTR("OverCurrentProtectMode:\t"));
-  Serial.println(pHub->OverCurrentProtectMode, BIN);
+  SerialDebug.println(pHub->OverCurrentProtectMode, BIN);
 
   printProgStr(PSTR("TTThinkTime:\t\t"));
-  Serial.println(pHub->TTThinkTime, BIN);
+  SerialDebug.println(pHub->TTThinkTime, BIN);
 
   printProgStr(PSTR("PortIndicatorsSupported:"));
-  Serial.println(pHub->PortIndicatorsSupported, BIN);
+  SerialDebug.println(pHub->PortIndicatorsSupported, BIN);
 
   printProgStr(PSTR("Reserved:\t\t"));
-  Serial.println(pHub->Reserved, HEX);
+  SerialDebug.println(pHub->Reserved, HEX);
 
   printProgStr(PSTR("bPwrOn2PwrGood:\t\t"));
-  Serial.println(pHub->bPwrOn2PwrGood, HEX);
+  SerialDebug.println(pHub->bPwrOn2PwrGood, HEX);
 
   printProgStr(PSTR("bHubContrCurrent:\t"));
-  Serial.println(pHub->bHubContrCurrent, HEX);
+  SerialDebug.println(pHub->bHubContrCurrent, HEX);
 
   for (uint8_t i = 7; i < len; i++)
     print_hex(descrptr[i], 8);
@@ -204,9 +219,9 @@ uint8_t getconfdescr( uint8_t addr, uint8_t conf )
   rcode = UsbH.getConfDescr( addr, 0, 4, conf, buf );  //get total length
   LOBYTE( total_length ) = buf[ 2 ];
   HIBYTE( total_length ) = buf[ 3 ];
-  if ( total_length > 256 ) {   //check if total length is larger than buffer
+  if( total_length > sizeof(buf)) {    //check if total length is larger than buffer
     printProgStr(Conf_Trunc_str);
-    total_length = 256;
+    total_length = sizeof(buf);
   }
   rcode = UsbH.getConfDescr( addr, 0, total_length, conf, buf ); //get the whole descriptor
   while ( buf_ptr < buf + total_length ) { //parsing descriptors
@@ -221,6 +236,9 @@ uint8_t getconfdescr( uint8_t addr, uint8_t conf )
         break;
       case ( USB_DESCRIPTOR_ENDPOINT ):
         printepdescr( buf_ptr );
+        break;
+      case 0x21:  // HID Descriptor
+        printHIDdescr( buf_ptr );
         break;
       case 0x29:
         printhubdescr( buf_ptr, addr );
@@ -251,7 +269,7 @@ void print_hex(int v, int num_places)
   }
   do {
     digit = ((v >> (num_nibbles - 1) * 4)) & 0x0f;
-    Serial.print(digit, HEX);
+    SerialDebug.print(digit, HEX);
   }
   while (--num_nibbles);
 }
@@ -295,14 +313,44 @@ void printintfdescr( uint8_t* descr_ptr )
   print_hex( intf_ptr->iInterface, 8 );
   return;
 }
+
+/* function to print HID descriptor */
+void printHIDdescr( uint8_t* descr_ptr )
+{
+	USB_HID_DESCRIPTOR* ep_ptr = ( USB_HID_DESCRIPTOR* )descr_ptr;
+
+    printProgStr(PSTR("\r\n\r\nHID Descriptor:\r\n"));
+    printProgStr(PSTR("HID Class Release:\t"));
+	print_hex( ep_ptr->bcdHID, 16 );
+    printProgStr(PSTR("\r\nCountry Code:\t\t"));
+	print_hex( ep_ptr->bCountryCode, 8 );
+    printProgStr(PSTR("\r\nNumb Class Descriptor:\t"));
+	print_hex( ep_ptr->bNumDescriptors, 8 );
+    printProgStr(PSTR("\r\nDescriptor Type:\t"));
+	if( ep_ptr->bDescrType == 0x22 )
+		printProgStr(PSTR("REPORT DESCRIPTOR"));
+	else
+		print_hex( ep_ptr->bDescrType, 8 );
+    printProgStr(PSTR("\r\nCSize Report Descr:\t"));
+	print_hex( ep_ptr->wDescriptorLength, 16 );
+}
+
 /* function to print endpoint descriptor */
 void printepdescr( uint8_t* descr_ptr )
 {
+  uint8_t transfer_type;
+
   USB_ENDPOINT_DESCRIPTOR* ep_ptr = ( USB_ENDPOINT_DESCRIPTOR* )descr_ptr;
   printProgStr(End_Header_str);
   printProgStr(End_Address_str);
-  print_hex( ep_ptr->bEndpointAddress, 8 );
+  if( 0x80 & ep_ptr->bEndpointAddress ) printProgStr(PSTR("IN\t\t"));
+  else printProgStr(PSTR("OUT\t\t"));
+  print_hex( (ep_ptr->bEndpointAddress & 0xF), 8 );
   printProgStr(End_Attr_str);
+  transfer_type = ep_ptr->bmAttributes & bmUSB_TRANSFER_TYPE;
+  if( transfer_type == USB_TRANSFER_TYPE_INTERRUPT ) printProgStr(PSTR("INTERRUPT\t"));
+  else if( transfer_type == USB_TRANSFER_TYPE_BULK ) printProgStr(PSTR("BULK\t"));
+  else if( transfer_type == USB_TRANSFER_TYPE_ISOCHRONOUS ) printProgStr(PSTR("ISO\t"));
   print_hex( ep_ptr->bmAttributes, 8 );
   printProgStr(End_Pktsize_str);
   print_hex( ep_ptr->wMaxPacketSize, 16 );
@@ -336,5 +384,5 @@ void printProgStr(const char* str)
   char c;
   if (!str) return;
   while ((c = pgm_read_byte(str++)))
-    Serial.print(c);
+    SerialDebug.print(c);
 }

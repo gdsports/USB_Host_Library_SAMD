@@ -4,6 +4,15 @@
 
 #include "hidjoystickrptparser.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 USBHub Hub(&UsbH);
 HIDUniversal Hid(&UsbH);
@@ -11,14 +20,11 @@ JoystickEvents JoyEvents;
 JoystickReportParser Joy(&JoyEvents);
 
 void setup() {
-        Serial.begin(115200);
-#if !defined(__MIPSEL__)
-        while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-        Serial.println("Start");
+        SerialDebug.begin(115200);
+        SerialDebug.println("Start");
 
         if (UsbH.Init())
-                Serial.println("USB host did not start.");
+                SerialDebug.println("USB host did not start.");
 
         delay(200);
 
@@ -29,4 +35,3 @@ void setup() {
 void loop() {
         UsbH.Task();
 }
-

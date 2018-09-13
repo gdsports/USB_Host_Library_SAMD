@@ -8,6 +8,15 @@
 #include <PS3BT.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -23,15 +32,12 @@ void setup() {
     PS3[i]->attachOnInit(onInit); // onInit() is called upon a new connection - you can call the function whatever you like
   }
 
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nPS3 Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nPS3 Bluetooth Library Started"));
 }
 void loop() {
   UsbH.Task();
@@ -39,64 +45,64 @@ void loop() {
   for (uint8_t i = 0; i < length; i++) {
     if (PS3[i]->PS3Connected || PS3[i]->PS3NavigationConnected) {
       if (PS3[i]->getAnalogHat(LeftHatX) > 137 || PS3[i]->getAnalogHat(LeftHatX) < 117 || PS3[i]->getAnalogHat(LeftHatY) > 137 || PS3[i]->getAnalogHat(LeftHatY) < 117 || PS3[i]->getAnalogHat(RightHatX) > 137 || PS3[i]->getAnalogHat(RightHatX) < 117 || PS3[i]->getAnalogHat(RightHatY) > 137 || PS3[i]->getAnalogHat(RightHatY) < 117) {
-        Serial.print(F("\r\nLeftHatX: "));
-        Serial.print(PS3[i]->getAnalogHat(LeftHatX));
-        Serial.print(F("\tLeftHatY: "));
-        Serial.print(PS3[i]->getAnalogHat(LeftHatY));
+        SerialDebug.print(F("\r\nLeftHatX: "));
+        SerialDebug.print(PS3[i]->getAnalogHat(LeftHatX));
+        SerialDebug.print(F("\tLeftHatY: "));
+        SerialDebug.print(PS3[i]->getAnalogHat(LeftHatY));
         if (PS3[i]->PS3Connected) { // The Navigation controller only have one joystick
-          Serial.print(F("\tRightHatX: "));
-          Serial.print(PS3[i]->getAnalogHat(RightHatX));
-          Serial.print(F("\tRightHatY: "));
-          Serial.print(PS3[i]->getAnalogHat(RightHatY));
+          SerialDebug.print(F("\tRightHatX: "));
+          SerialDebug.print(PS3[i]->getAnalogHat(RightHatX));
+          SerialDebug.print(F("\tRightHatY: "));
+          SerialDebug.print(PS3[i]->getAnalogHat(RightHatY));
         }
       }
       //Analog button values can be read from almost all buttons
       if (PS3[i]->getAnalogButton(L2) || PS3[i]->getAnalogButton(R2)) {
-        Serial.print(F("\r\nL2: "));
-        Serial.print(PS3[i]->getAnalogButton(L2));
+        SerialDebug.print(F("\r\nL2: "));
+        SerialDebug.print(PS3[i]->getAnalogButton(L2));
         if (PS3[i]->PS3Connected) {
-          Serial.print(F("\tR2: "));
-          Serial.print(PS3[i]->getAnalogButton(R2));
+          SerialDebug.print(F("\tR2: "));
+          SerialDebug.print(PS3[i]->getAnalogButton(R2));
         }
       }
       if (PS3[i]->getButtonClick(PS)) {
-        Serial.print(F("\r\nPS"));
+        SerialDebug.print(F("\r\nPS"));
         PS3[i]->disconnect();
         oldControllerState[i] = false; // Reset value
       }
       else {
         if (PS3[i]->getButtonClick(TRIANGLE))
-          Serial.print(F("\r\nTraingle"));
+          SerialDebug.print(F("\r\nTraingle"));
         if (PS3[i]->getButtonClick(CIRCLE))
-          Serial.print(F("\r\nCircle"));
+          SerialDebug.print(F("\r\nCircle"));
         if (PS3[i]->getButtonClick(CROSS))
-          Serial.print(F("\r\nCross"));
+          SerialDebug.print(F("\r\nCross"));
         if (PS3[i]->getButtonClick(SQUARE))
-          Serial.print(F("\r\nSquare"));
+          SerialDebug.print(F("\r\nSquare"));
 
         if (PS3[i]->getButtonClick(UP)) {
-          Serial.print(F("\r\nUp"));
+          SerialDebug.print(F("\r\nUp"));
           if (PS3[i]->PS3Connected) {
             PS3[i]->setLedOff();
             PS3[i]->setLedOn(LED4);
           }
         }
         if (PS3[i]->getButtonClick(RIGHT)) {
-          Serial.print(F("\r\nRight"));
+          SerialDebug.print(F("\r\nRight"));
           if (PS3[i]->PS3Connected) {
             PS3[i]->setLedOff();
             PS3[i]->setLedOn(LED1);
           }
         }
         if (PS3[i]->getButtonClick(DOWN)) {
-          Serial.print(F("\r\nDown"));
+          SerialDebug.print(F("\r\nDown"));
           if (PS3[i]->PS3Connected) {
             PS3[i]->setLedOff();
             PS3[i]->setLedOn(LED2);
           }
         }
         if (PS3[i]->getButtonClick(LEFT)) {
-          Serial.print(F("\r\nLeft"));
+          SerialDebug.print(F("\r\nLeft"));
           if (PS3[i]->PS3Connected) {
             PS3[i]->setLedOff();
             PS3[i]->setLedOn(LED3);
@@ -104,28 +110,28 @@ void loop() {
         }
 
         if (PS3[i]->getButtonClick(L1))
-          Serial.print(F("\r\nL1"));
+          SerialDebug.print(F("\r\nL1"));
         if (PS3[i]->getButtonClick(L3))
-          Serial.print(F("\r\nL3"));
+          SerialDebug.print(F("\r\nL3"));
         if (PS3[i]->getButtonClick(R1))
-          Serial.print(F("\r\nR1"));
+          SerialDebug.print(F("\r\nR1"));
         if (PS3[i]->getButtonClick(R3))
-          Serial.print(F("\r\nR3"));
+          SerialDebug.print(F("\r\nR3"));
 
         if (PS3[i]->getButtonClick(SELECT)) {
-          Serial.print(F("\r\nSelect - "));
+          SerialDebug.print(F("\r\nSelect - "));
           PS3[i]->printStatusString();
         }
         if (PS3[i]->getButtonClick(START)) {
-          Serial.print(F("\r\nStart"));
+          SerialDebug.print(F("\r\nStart"));
           printAngle[i] = !printAngle[i];
         }
       }
       if (printAngle[i]) {
-        Serial.print(F("\r\nPitch: "));
-        Serial.print(PS3[i]->getAngle(Pitch));
-        Serial.print(F("\tRoll: "));
-        Serial.print(PS3[i]->getAngle(Roll));
+        SerialDebug.print(F("\r\nPitch: "));
+        SerialDebug.print(PS3[i]->getAngle(Pitch));
+        SerialDebug.print(F("\tRoll: "));
+        SerialDebug.print(PS3[i]->getAngle(Roll));
       }
     }
     /* I have removed the PS3 Move code as an Uno will run out of RAM if it's included */

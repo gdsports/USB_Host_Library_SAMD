@@ -13,6 +13,15 @@
 #include <usbh_midi.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 USBHub Hub(&UsbH);
 USBH_MIDI  Midi(&UsbH);
@@ -27,7 +36,7 @@ void setup()
 {
   bFirst = true;
   vid = pid = 0;
-  SERIAL_PORT_MONITOR.begin(115200);
+  SerialDebug.begin(115200);
 
   if (UsbH.Init()) {
     Serial.println("USB host did not start");
@@ -61,13 +70,13 @@ void MIDI_poll()
   if (Midi.RecvData(&rcvd,  bufMidi) == 0 ) {
     uint32_t time = (uint32_t)millis();
     sprintf(buf, "%04X%04X: ", (uint16_t)(time >> 16), (uint16_t)(time & 0xFFFF)); // Split variable to prevent warnings on the ESP8266 platform
-    SERIAL_PORT_MONITOR.print(buf);
-    SERIAL_PORT_MONITOR.print(rcvd);
-    SERIAL_PORT_MONITOR.print(':');
+    SerialDebug.print(buf);
+    SerialDebug.print(rcvd);
+    SerialDebug.print(':');
     for (int i = 0; i < 64; i++) {
       sprintf(buf, " %02X", bufMidi[i]);
-      SERIAL_PORT_MONITOR.print(buf);
+      SerialDebug.print(buf);
     }
-    SERIAL_PORT_MONITOR.println();
+    SerialDebug.println();
   }
 }

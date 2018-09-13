@@ -1,4 +1,4 @@
-/* Parser for standard HID scale (usage page 0x8d) data input report (ID 3) */ 
+/* Parser for standard HID scale (usage page 0x8d) data input report (ID 3) */
 #if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD)
 #include <avr/dtostrf.h>
 #endif
@@ -79,7 +79,7 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 	
 	switch( evt->status ) {
 		
-		case REPORT_FAULT: 
+		case REPORT_FAULT:
 			Serial.println(F("Report fault"));
 			break;
 			
@@ -99,9 +99,9 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 			
 			char buf[10];
       double weight = evt->weight * pow( 10, evt->exp );
-      
+
       	
-                        
+
       	Serial.print(F("Weight: "));
 				Serial.print( weight );
 				Serial.print(F(" "));
@@ -109,7 +109,7 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 				
 				LcdPrint("Weight: ");
 				dtostrf( weight, 4, 2, buf );
-				LcdPrint( buf ); 
+				LcdPrint( buf );
 				LcdPrint( UNITS[ evt->unit ]);
 			
 			break;

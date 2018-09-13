@@ -1,6 +1,15 @@
 #include <hidboot.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class MouseRptParser : public MouseReportParser
 {
   protected:
@@ -14,34 +23,34 @@ class MouseRptParser : public MouseReportParser
 };
 void MouseRptParser::OnMouseMove(MOUSEINFO *mi)
 {
-  Serial.print("dx=");
-  Serial.print(mi->dX, DEC);
-  Serial.print(" dy=");
-  Serial.println(mi->dY, DEC);
+  SerialDebug.print("dx=");
+  SerialDebug.print(mi->dX, DEC);
+  SerialDebug.print(" dy=");
+  SerialDebug.println(mi->dY, DEC);
 };
 void MouseRptParser::OnLeftButtonUp	(MOUSEINFO *mi)
 {
-  Serial.println("L Butt Up");
+  SerialDebug.println("L Butt Up");
 };
 void MouseRptParser::OnLeftButtonDown	(MOUSEINFO *mi)
 {
-  Serial.println("L Butt Dn");
+  SerialDebug.println("L Butt Dn");
 };
 void MouseRptParser::OnRightButtonUp	(MOUSEINFO *mi)
 {
-  Serial.println("R Butt Up");
+  SerialDebug.println("R Butt Up");
 };
 void MouseRptParser::OnRightButtonDown	(MOUSEINFO *mi)
 {
-  Serial.println("R Butt Dn");
+  SerialDebug.println("R Butt Dn");
 };
 void MouseRptParser::OnMiddleButtonUp	(MOUSEINFO *mi)
 {
-  Serial.println("M Butt Up");
+  SerialDebug.println("M Butt Up");
 };
 void MouseRptParser::OnMiddleButtonDown	(MOUSEINFO *mi)
 {
-  Serial.println("M Butt Dn");
+  SerialDebug.println("M Butt Dn");
 };
 
 class KbdRptParser : public KeyboardReportParser
@@ -59,24 +68,24 @@ void KbdRptParser::PrintKey(uint8_t m, uint8_t key)
 {
   MODIFIERKEYS mod;
   *((uint8_t*)&mod) = m;
-  Serial.print((mod.bmLeftCtrl   == 1) ? "C" : " ");
-  Serial.print((mod.bmLeftShift  == 1) ? "S" : " ");
-  Serial.print((mod.bmLeftAlt    == 1) ? "A" : " ");
-  Serial.print((mod.bmLeftGUI    == 1) ? "G" : " ");
+  SerialDebug.print((mod.bmLeftCtrl   == 1) ? "C" : " ");
+  SerialDebug.print((mod.bmLeftShift  == 1) ? "S" : " ");
+  SerialDebug.print((mod.bmLeftAlt    == 1) ? "A" : " ");
+  SerialDebug.print((mod.bmLeftGUI    == 1) ? "G" : " ");
 
-  Serial.print(" >");
+  SerialDebug.print(" >");
   PrintHex<uint8_t>(key, 0x80);
-  Serial.print("< ");
+  SerialDebug.print("< ");
 
-  Serial.print((mod.bmRightCtrl   == 1) ? "C" : " ");
-  Serial.print((mod.bmRightShift  == 1) ? "S" : " ");
-  Serial.print((mod.bmRightAlt    == 1) ? "A" : " ");
-  Serial.println((mod.bmRightGUI    == 1) ? "G" : " ");
+  SerialDebug.print((mod.bmRightCtrl   == 1) ? "C" : " ");
+  SerialDebug.print((mod.bmRightShift  == 1) ? "S" : " ");
+  SerialDebug.print((mod.bmRightAlt    == 1) ? "A" : " ");
+  SerialDebug.println((mod.bmRightGUI    == 1) ? "G" : " ");
 };
 
 void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key)
 {
-  Serial.print("DN ");
+  SerialDebug.print("DN ");
   PrintKey(mod, key);
   uint8_t c = OemToAscii(mod, key);
 
@@ -93,43 +102,43 @@ void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
   *((uint8_t*)&afterMod) = after;
 
   if (beforeMod.bmLeftCtrl != afterMod.bmLeftCtrl) {
-    Serial.println("LeftCtrl changed");
+    SerialDebug.println("LeftCtrl changed");
   }
   if (beforeMod.bmLeftShift != afterMod.bmLeftShift) {
-    Serial.println("LeftShift changed");
+    SerialDebug.println("LeftShift changed");
   }
   if (beforeMod.bmLeftAlt != afterMod.bmLeftAlt) {
-    Serial.println("LeftAlt changed");
+    SerialDebug.println("LeftAlt changed");
   }
   if (beforeMod.bmLeftGUI != afterMod.bmLeftGUI) {
-    Serial.println("LeftGUI changed");
+    SerialDebug.println("LeftGUI changed");
   }
 
   if (beforeMod.bmRightCtrl != afterMod.bmRightCtrl) {
-    Serial.println("RightCtrl changed");
+    SerialDebug.println("RightCtrl changed");
   }
   if (beforeMod.bmRightShift != afterMod.bmRightShift) {
-    Serial.println("RightShift changed");
+    SerialDebug.println("RightShift changed");
   }
   if (beforeMod.bmRightAlt != afterMod.bmRightAlt) {
-    Serial.println("RightAlt changed");
+    SerialDebug.println("RightAlt changed");
   }
   if (beforeMod.bmRightGUI != afterMod.bmRightGUI) {
-    Serial.println("RightGUI changed");
+    SerialDebug.println("RightGUI changed");
   }
 
 }
 
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key)
 {
-  Serial.print("UP ");
+  SerialDebug.print("UP ");
   PrintKey(mod, key);
 }
 
 void KbdRptParser::OnKeyPressed(uint8_t key)
 {
-  Serial.print("ASCII: ");
-  Serial.println((char)key);
+  SerialDebug.print("ASCII: ");
+  SerialDebug.println((char)key);
 };
 
 USBHost    UsbH;
@@ -144,14 +153,11 @@ MouseRptParser MousePrs;
 
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("Start");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("Start");
 
   if (UsbH.Init())
-    Serial.println("USB host did not start.");
+    SerialDebug.println("USB host did not start.");
 
   delay( 200 );
 

@@ -3,6 +3,15 @@
 
 #include "pgmstrings.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class ACMAsyncOper : public CDCAsyncOper
 {
 public:
@@ -42,17 +51,14 @@ ACM           AcmSerial(&UsbH, &AsyncOper);
 
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("Start");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("Start");
 
   if (UsbH.Init())
-      Serial.println("USB host failed to initialize");
+      SerialDebug.println("USB host failed to initialize");
 
   delay( 200 );
-  Serial.println("USB Host init OK");
+  SerialDebug.println("USB Host init OK");
 }
 
 void loop()
@@ -63,13 +69,13 @@ void loop()
        uint8_t rcode;
 
        /* reading the keyboard */
-       if(Serial.available()) {
-         uint8_t data= Serial.read();
+       if(SerialDebug.available()) {
+         uint8_t data= SerialDebug.read();
          /* sending to the phone */
          rcode = AcmSerial.SndData(1, &data);
          if (rcode)
             ErrorMessage<uint8_t>(PSTR("SndData"), rcode);
-       }//if(Serial.available()...
+       }//if(SerialDebug.available()...
 
        delay(50);
 
@@ -85,7 +91,7 @@ void loop()
 
         if( rcvd ) { //more than zero bytes received
           for(uint16_t i=0; i < rcvd; i++ ) {
-            Serial.print((char)buf[i]); //printing on the screen
+            SerialDebug.print((char)buf[i]); //printing on the screen
           }
         }
         delay(10);

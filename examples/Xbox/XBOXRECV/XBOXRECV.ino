@@ -7,19 +7,25 @@
 
 #include <XBOXRECV.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 XBOXRECV Xbox(&UsbH);
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nXbox Wireless Receiver Library Started"));
+  SerialDebug.print(F("\r\nXbox Wireless Receiver Library Started"));
 }
 void loop() {
   UsbH.Task();
@@ -27,89 +33,89 @@ void loop() {
     for (uint8_t i = 0; i < 4; i++) {
       if (Xbox.Xbox360Connected[i]) {
         if (Xbox.getButtonPress(L2, i) || Xbox.getButtonPress(R2, i)) {
-          Serial.print("L2: ");
-          Serial.print(Xbox.getButtonPress(L2, i));
-          Serial.print("\tR2: ");
-          Serial.println(Xbox.getButtonPress(R2, i));
+          SerialDebug.print("L2: ");
+          SerialDebug.print(Xbox.getButtonPress(L2, i));
+          SerialDebug.print("\tR2: ");
+          SerialDebug.println(Xbox.getButtonPress(R2, i));
           Xbox.setRumbleOn(Xbox.getButtonPress(L2, i), Xbox.getButtonPress(R2, i), i);
         }
 
         if (Xbox.getAnalogHat(LeftHatX, i) > 7500 || Xbox.getAnalogHat(LeftHatX, i) < -7500 || Xbox.getAnalogHat(LeftHatY, i) > 7500 || Xbox.getAnalogHat(LeftHatY, i) < -7500 || Xbox.getAnalogHat(RightHatX, i) > 7500 || Xbox.getAnalogHat(RightHatX, i) < -7500 || Xbox.getAnalogHat(RightHatY, i) > 7500 || Xbox.getAnalogHat(RightHatY, i) < -7500) {
           if (Xbox.getAnalogHat(LeftHatX, i) > 7500 || Xbox.getAnalogHat(LeftHatX, i) < -7500) {
-            Serial.print(F("LeftHatX: "));
-            Serial.print(Xbox.getAnalogHat(LeftHatX, i));
-            Serial.print("\t");
+            SerialDebug.print(F("LeftHatX: "));
+            SerialDebug.print(Xbox.getAnalogHat(LeftHatX, i));
+            SerialDebug.print("\t");
           }
           if (Xbox.getAnalogHat(LeftHatY, i) > 7500 || Xbox.getAnalogHat(LeftHatY, i) < -7500) {
-            Serial.print(F("LeftHatY: "));
-            Serial.print(Xbox.getAnalogHat(LeftHatY, i));
-            Serial.print("\t");
+            SerialDebug.print(F("LeftHatY: "));
+            SerialDebug.print(Xbox.getAnalogHat(LeftHatY, i));
+            SerialDebug.print("\t");
           }
           if (Xbox.getAnalogHat(RightHatX, i) > 7500 || Xbox.getAnalogHat(RightHatX, i) < -7500) {
-            Serial.print(F("RightHatX: "));
-            Serial.print(Xbox.getAnalogHat(RightHatX, i));
-            Serial.print("\t");
+            SerialDebug.print(F("RightHatX: "));
+            SerialDebug.print(Xbox.getAnalogHat(RightHatX, i));
+            SerialDebug.print("\t");
           }
           if (Xbox.getAnalogHat(RightHatY, i) > 7500 || Xbox.getAnalogHat(RightHatY, i) < -7500) {
-            Serial.print(F("RightHatY: "));
-            Serial.print(Xbox.getAnalogHat(RightHatY, i));
+            SerialDebug.print(F("RightHatY: "));
+            SerialDebug.print(Xbox.getAnalogHat(RightHatY, i));
           }
-          Serial.println();
+          SerialDebug.println();
         }
 
         if (Xbox.getButtonClick(UP, i)) {
           Xbox.setLedOn(LED1, i);
-          Serial.println(F("Up"));
+          SerialDebug.println(F("Up"));
         }
         if (Xbox.getButtonClick(DOWN, i)) {
           Xbox.setLedOn(LED4, i);
-          Serial.println(F("Down"));
+          SerialDebug.println(F("Down"));
         }
         if (Xbox.getButtonClick(LEFT, i)) {
           Xbox.setLedOn(LED3, i);
-          Serial.println(F("Left"));
+          SerialDebug.println(F("Left"));
         }
         if (Xbox.getButtonClick(RIGHT, i)) {
           Xbox.setLedOn(LED2, i);
-          Serial.println(F("Right"));
+          SerialDebug.println(F("Right"));
         }
 
         if (Xbox.getButtonClick(START, i)) {
           Xbox.setLedMode(ALTERNATING, i);
-          Serial.println(F("Start"));
+          SerialDebug.println(F("Start"));
         }
         if (Xbox.getButtonClick(BACK, i)) {
           Xbox.setLedBlink(ALL, i);
-          Serial.println(F("Back"));
+          SerialDebug.println(F("Back"));
         }
         if (Xbox.getButtonClick(L3, i))
-          Serial.println(F("L3"));
+          SerialDebug.println(F("L3"));
         if (Xbox.getButtonClick(R3, i))
-          Serial.println(F("R3"));
+          SerialDebug.println(F("R3"));
 
         if (Xbox.getButtonClick(L1, i))
-          Serial.println(F("L1"));
+          SerialDebug.println(F("L1"));
         if (Xbox.getButtonClick(R1, i))
-          Serial.println(F("R1"));
+          SerialDebug.println(F("R1"));
         if (Xbox.getButtonClick(XBOX, i)) {
           Xbox.setLedMode(ROTATING, i);
-          Serial.print(F("Xbox (Battery: "));
-          Serial.print(Xbox.getBatteryLevel(i)); // The battery level in the range 0-3
-          Serial.println(F(")"));
+          SerialDebug.print(F("Xbox (Battery: "));
+          SerialDebug.print(Xbox.getBatteryLevel(i)); // The battery level in the range 0-3
+          SerialDebug.println(F(")"));
         }
         if (Xbox.getButtonClick(SYNC, i)) {
-          Serial.println(F("Sync"));
+          SerialDebug.println(F("Sync"));
           Xbox.disconnect(i);
         }
 
         if (Xbox.getButtonClick(A, i))
-          Serial.println(F("A"));
+          SerialDebug.println(F("A"));
         if (Xbox.getButtonClick(B, i))
-          Serial.println(F("B"));
+          SerialDebug.println(F("B"));
         if (Xbox.getButtonClick(X, i))
-          Serial.println(F("X"));
+          SerialDebug.println(F("X"));
         if (Xbox.getButtonClick(Y, i))
-          Serial.println(F("Y"));
+          SerialDebug.println(F("Y"));
       }
     }
   }

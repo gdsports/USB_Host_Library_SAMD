@@ -6,6 +6,15 @@
 
 #include <PS3USB.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 /* You can create the instance of the class in two ways */
 PS3USB PS3(&UsbH); // This will just create the instance
@@ -15,96 +24,93 @@ bool printAngle;
 uint8_t state = 0;
 
 void setup() {
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); //halt
   }
-  Serial.print(F("\r\nPS3 USB Library Started"));
+  SerialDebug.print(F("\r\nPS3 USB Library Started"));
 }
 void loop() {
   UsbH.Task();
 
   if (PS3.PS3Connected || PS3.PS3NavigationConnected) {
     if (PS3.getAnalogHat(LeftHatX) > 137 || PS3.getAnalogHat(LeftHatX) < 117 || PS3.getAnalogHat(LeftHatY) > 137 || PS3.getAnalogHat(LeftHatY) < 117 || PS3.getAnalogHat(RightHatX) > 137 || PS3.getAnalogHat(RightHatX) < 117 || PS3.getAnalogHat(RightHatY) > 137 || PS3.getAnalogHat(RightHatY) < 117) {
-      Serial.print(F("\r\nLeftHatX: "));
-      Serial.print(PS3.getAnalogHat(LeftHatX));
-      Serial.print(F("\tLeftHatY: "));
-      Serial.print(PS3.getAnalogHat(LeftHatY));
+      SerialDebug.print(F("\r\nLeftHatX: "));
+      SerialDebug.print(PS3.getAnalogHat(LeftHatX));
+      SerialDebug.print(F("\tLeftHatY: "));
+      SerialDebug.print(PS3.getAnalogHat(LeftHatY));
       if (PS3.PS3Connected) { // The Navigation controller only have one joystick
-        Serial.print(F("\tRightHatX: "));
-        Serial.print(PS3.getAnalogHat(RightHatX));
-        Serial.print(F("\tRightHatY: "));
-        Serial.print(PS3.getAnalogHat(RightHatY));
+        SerialDebug.print(F("\tRightHatX: "));
+        SerialDebug.print(PS3.getAnalogHat(RightHatX));
+        SerialDebug.print(F("\tRightHatY: "));
+        SerialDebug.print(PS3.getAnalogHat(RightHatY));
       }
     }
     // Analog button values can be read from almost all buttons
     if (PS3.getAnalogButton(L2) || PS3.getAnalogButton(R2)) {
-      Serial.print(F("\r\nL2: "));
-      Serial.print(PS3.getAnalogButton(L2));
+      SerialDebug.print(F("\r\nL2: "));
+      SerialDebug.print(PS3.getAnalogButton(L2));
       if (!PS3.PS3NavigationConnected) {
-        Serial.print(F("\tR2: "));
-        Serial.print(PS3.getAnalogButton(R2));
+        SerialDebug.print(F("\tR2: "));
+        SerialDebug.print(PS3.getAnalogButton(R2));
       }
     }
     if (PS3.getButtonClick(PS))
-      Serial.print(F("\r\nPS"));
+      SerialDebug.print(F("\r\nPS"));
 
     if (PS3.getButtonClick(TRIANGLE))
-      Serial.print(F("\r\nTriangle"));
+      SerialDebug.print(F("\r\nTriangle"));
     if (PS3.getButtonClick(CIRCLE))
-      Serial.print(F("\r\nCircle"));
+      SerialDebug.print(F("\r\nCircle"));
     if (PS3.getButtonClick(CROSS))
-      Serial.print(F("\r\nCross"));
+      SerialDebug.print(F("\r\nCross"));
     if (PS3.getButtonClick(SQUARE))
-      Serial.print(F("\r\nSquare"));
+      SerialDebug.print(F("\r\nSquare"));
 
     if (PS3.getButtonClick(UP)) {
-      Serial.print(F("\r\nUp"));
+      SerialDebug.print(F("\r\nUp"));
       PS3.setLedOff();
       PS3.setLedOn(LED4);
     }
     if (PS3.getButtonClick(RIGHT)) {
-      Serial.print(F("\r\nRight"));
+      SerialDebug.print(F("\r\nRight"));
       PS3.setLedOff();
       PS3.setLedOn(LED1);
     }
     if (PS3.getButtonClick(DOWN)) {
-      Serial.print(F("\r\nDown"));
+      SerialDebug.print(F("\r\nDown"));
       PS3.setLedOff();
       PS3.setLedOn(LED2);
     }
     if (PS3.getButtonClick(LEFT)) {
-      Serial.print(F("\r\nLeft"));
+      SerialDebug.print(F("\r\nLeft"));
       PS3.setLedOff();
       PS3.setLedOn(LED3);
     }
 
     if (PS3.getButtonClick(L1))
-      Serial.print(F("\r\nL1"));
+      SerialDebug.print(F("\r\nL1"));
     if (PS3.getButtonClick(L3))
-      Serial.print(F("\r\nL3"));
+      SerialDebug.print(F("\r\nL3"));
     if (PS3.getButtonClick(R1))
-      Serial.print(F("\r\nR1"));
+      SerialDebug.print(F("\r\nR1"));
     if (PS3.getButtonClick(R3))
-      Serial.print(F("\r\nR3"));
+      SerialDebug.print(F("\r\nR3"));
 
     if (PS3.getButtonClick(SELECT)) {
-      Serial.print(F("\r\nSelect - "));
+      SerialDebug.print(F("\r\nSelect - "));
       PS3.printStatusString();
     }
     if (PS3.getButtonClick(START)) {
-      Serial.print(F("\r\nStart"));
+      SerialDebug.print(F("\r\nStart"));
       printAngle = !printAngle;
     }
     if (printAngle) {
-      Serial.print(F("\r\nPitch: "));
-      Serial.print(PS3.getAngle(Pitch));
-      Serial.print(F("\tRoll: "));
-      Serial.print(PS3.getAngle(Roll));
+      SerialDebug.print(F("\r\nPitch: "));
+      SerialDebug.print(PS3.getAngle(Pitch));
+      SerialDebug.print(F("\tRoll: "));
+      SerialDebug.print(PS3.getAngle(Roll));
     }
   }
   else if (PS3.PS3MoveConnected) { // One can only set the color of the bulb, set the rumble, set and get the bluetooth address and calibrate the magnetometer via USB

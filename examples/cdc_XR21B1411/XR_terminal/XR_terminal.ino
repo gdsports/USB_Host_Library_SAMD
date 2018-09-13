@@ -1,5 +1,14 @@
 #include <cdc_XR21B1411.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class ACMAsyncOper : public CDCAsyncOper
 {
 public:
@@ -37,13 +46,10 @@ ACMAsyncOper  AsyncOper;
 XR21B1411     Acm(&UsbH, &AsyncOper);
 
 void setup() {
-        Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-        while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-        Serial.println("\r\n\r\nStart");
+        SerialDebug.begin( 115200 );
+        SerialDebug.println("\r\n\r\nStart");
 
-        if (UsbH.Init()) Serial.println("USB host failed to assert");
+        if (UsbH.Init()) SerialDebug.println("USB host failed to assert");
 }
 
 void loop() {
@@ -54,14 +60,14 @@ void loop() {
                 uint16_t rcvd = 1;
 
                 /* read keyboard */
-                if(Serial.available()) {
-                         uint8_t data = Serial.read();
+                if(SerialDebug.available()) {
+                         uint8_t data = SerialDebug.read();
                          /* send */
                          rcode = Acm.SndData(1, &data);
                          if (rcode)
                                  ErrorMessage<uint8_t>(PSTR("SndData"), rcode);
                  }
-                
+
                 /* read XR serial */
                 rcode = Acm.RcvData(&rcvd, buf);
                 if (rcode && rcode != USB_ERRORFLOW)
@@ -69,7 +75,7 @@ void loop() {
 
                 if( rcvd ) { //more than zero bytes received
                         for(uint16_t i=0; i < rcvd; i++ ) {
-                                Serial.print((char)buf[i]);
+                                SerialDebug.print((char)buf[i]);
                         }
                 }
         }

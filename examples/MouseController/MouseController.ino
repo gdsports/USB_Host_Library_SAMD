@@ -15,6 +15,17 @@
 // Require mouse control library
 #include <MouseController.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
+uint32_t lastUSBstate = 0;
+
 // Initialize USB Controller
 USBHost usb;
 
@@ -28,64 +39,63 @@ bool rightButton = false;
 
 // This function intercepts mouse movements
 void mouseMoved() {
-  SERIAL_PORT_MONITOR.print("Move: ");
-  SERIAL_PORT_MONITOR.print(mouse.getXChange());
-  SERIAL_PORT_MONITOR.print(", ");
-  SERIAL_PORT_MONITOR.println(mouse.getYChange());
+  SerialDebug.print("Move: ");
+  SerialDebug.print(mouse.getXChange());
+  SerialDebug.print(", ");
+  SerialDebug.println(mouse.getYChange());
 }
 
 // This function intercepts mouse movements while a button is pressed
 void mouseDragged() {
-  SERIAL_PORT_MONITOR.print("DRAG: ");
-  SERIAL_PORT_MONITOR.print(mouse.getXChange());
-  SERIAL_PORT_MONITOR.print(", ");
-  SERIAL_PORT_MONITOR.println(mouse.getYChange());
+  SerialDebug.print("DRAG: ");
+  SerialDebug.print(mouse.getXChange());
+  SerialDebug.print(", ");
+  SerialDebug.println(mouse.getYChange());
 }
 
 // This function intercepts mouse button press
 void mousePressed() {
-  SERIAL_PORT_MONITOR.print("Pressed: ");
+  SerialDebug.print("Pressed: ");
   if (mouse.getButton(LEFT_BUTTON)) {
-    SERIAL_PORT_MONITOR.print("L");
+    SerialDebug.print("L");
     leftButton = true;
   }
   if (mouse.getButton(MIDDLE_BUTTON)) {
-    SERIAL_PORT_MONITOR.print("M");
+    SerialDebug.print("M");
     middleButton = true;
   }
   if (mouse.getButton(RIGHT_BUTTON)) {
-    SERIAL_PORT_MONITOR.print("R");
+    SerialDebug.print("R");
     rightButton = true;
   }
-  SERIAL_PORT_MONITOR.println();
+  SerialDebug.println();
 }
 
 // This function intercepts mouse button release
 void mouseReleased() {
-  SERIAL_PORT_MONITOR.print("Released: ");
+  SerialDebug.print("Released: ");
   if (!mouse.getButton(LEFT_BUTTON) && leftButton == true) {
-    SERIAL_PORT_MONITOR.print("L");
+    SerialDebug.print("L");
     leftButton = false;
   }
   if (!mouse.getButton(MIDDLE_BUTTON) && middleButton == true) {
-    SERIAL_PORT_MONITOR.print("M");
+    SerialDebug.print("M");
     middleButton = false;
   }
   if (!mouse.getButton(RIGHT_BUTTON) && rightButton == true) {
-    SERIAL_PORT_MONITOR.print("R");
+    SerialDebug.print("R");
     rightButton = false;
   }
-  SERIAL_PORT_MONITOR.println();
+  SerialDebug.println();
 }
 
 void setup()
 {
-  SERIAL_PORT_MONITOR.begin( 115200 );
-  while (!SERIAL_PORT_MONITOR); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-  SERIAL_PORT_MONITOR.println("Mouse Controller Program started");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("Mouse Controller Program started");
 
   if (usb.Init())
-      SERIAL_PORT_MONITOR.println("USB host did not start.");
+      SerialDebug.println("USB host did not start.");
 
   delay( 20 );
 }
@@ -94,4 +104,21 @@ void loop()
 {
   // Process USB tasks
   usb.Task();
+
+  uint32_t currentUSBstate = usb.getUsbTaskState();
+  if (lastUSBstate != currentUSBstate) {
+    SerialDebug.print("USB state changed: 0x");
+    SerialDebug.print(lastUSBstate, HEX);
+    SerialDebug.print(" -> 0x");
+    SerialDebug.println(currentUSBstate, HEX);
+    switch (currentUSBstate) {
+      case USB_ATTACHED_SUBSTATE_SETTLE: SerialDebug.println("Device Attached"); break;
+      case USB_DETACHED_SUBSTATE_WAIT_FOR_DEVICE: SerialDebug.println("Detached, waiting for Device"); break;
+      case USB_ATTACHED_SUBSTATE_RESET_DEVICE: SerialDebug.println("Resetting Device"); break;
+      case USB_ATTACHED_SUBSTATE_WAIT_RESET_COMPLETE: SerialDebug.println("Reset complete"); break;
+      case USB_STATE_CONFIGURING: SerialDebug.println("USB Configuring"); break;
+      case USB_STATE_RUNNING: SerialDebug.println("USB Running"); break;
+    }
+    lastUSBstate = currentUSBstate;
+  }
 }

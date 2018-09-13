@@ -3,6 +3,15 @@
 
 #include "pgmstrings.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class FTDIAsync : public FTDIAsyncOper
 {
 public:
@@ -35,14 +44,11 @@ FTDI             Ftdi(&UsbH, &FtdiAsync);
 
 void setup()
 {
-  Serial.begin( 115200 );
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
-  Serial.println("Start");
+  SerialDebug.begin( 115200 );
+  SerialDebug.println("Start");
 
   if (UsbH.Init())
-      Serial.println("USB host did not start.");
+      SerialDebug.println("USB host did not start.");
 
   delay( 200 );
 }
@@ -57,7 +63,7 @@ void loop()
         char strbuf[] = "DEADBEEF";
         //char strbuf[] = "The quick brown fox jumps over the lazy dog";
         //char strbuf[] = "This string contains 61 character to demonstrate FTDI buffers"; //add one symbol to it to see some garbage
-        Serial.print(".");
+        SerialDebug.print(".");
 
         rcode = Ftdi.SndData(strlen(strbuf), (uint8_t*)strbuf);
 
@@ -80,7 +86,7 @@ void loop()
         // The device reserves the first two bytes of data
         //   to contain the current values of the modem and line status registers.
         if (rcvd > 2)
-            Serial.print((char*)(buf+2));
+            SerialDebug.print((char*)(buf+2));
 
         delay(10);
     }

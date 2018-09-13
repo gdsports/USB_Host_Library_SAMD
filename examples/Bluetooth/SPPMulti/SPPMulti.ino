@@ -7,6 +7,15 @@
 #include <SPP.h>
 #include <usbhub.h>
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 
@@ -21,15 +30,12 @@ void setup() {
   for (uint8_t i = 0; i < length; i++)
     SerialBT[i] = new SPP(&Btd); // This will set the name to the default: "Arduino" and the pin to "0000" for all connections
 
-  Serial.begin(115200);
-#if !defined(__MIPSEL__)
-  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
-#endif
+  SerialDebug.begin(115200);
   if (UsbH.Init()) {
-    Serial.print(F("\r\nUSB host did not start"));
+    SerialDebug.print(F("\r\nUSB host did not start"));
     while (1); // Halt
   }
-  Serial.print(F("\r\nSPP Bluetooth Library Started"));
+  SerialDebug.print(F("\r\nSPP Bluetooth Library Started"));
 }
 
 void loop() {
@@ -42,7 +48,7 @@ void loop() {
         SerialBT[i]->println(F("Hello from Arduino")); // Send welcome message
       }
       if (SerialBT[i]->available())
-        Serial.write(SerialBT[i]->read());
+        SerialDebug.write(SerialBT[i]->read());
     }
     else
       firstMessage[i] = true;
@@ -50,12 +56,12 @@ void loop() {
 
   // Set the connection you want to send to using the first character
   // For instance "0Hello World" would send "Hello World" to connection 0
-  if (Serial.available()) {
+  if (SerialDebug.available()) {
     delay(10); // Wait for the rest of the data to arrive
-    uint8_t id = Serial.read() - '0'; // Convert from ASCII
+    uint8_t id = SerialDebug.read() - '0'; // Convert from ASCII
     if (id < length && SerialBT[id]->connected) { // Make sure that the id is valid and make sure that a device is actually connected
-      while (Serial.available()) // Check if data is available
-        SerialBT[id]->write(Serial.read()); // Send the data
+      while (SerialDebug.available()) // Check if data is available
+        SerialBT[id]->write(SerialDebug.read()); // Send the data
     }
   }
 }

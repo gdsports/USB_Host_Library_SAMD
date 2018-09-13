@@ -24,7 +24,7 @@ e-mail   :  support@circuitsathome.com
 #include <stdint.h>
 
 //#define TRACE_USBHOST(x)	x
-#define TRACE_USBHOST(x)  
+#define TRACE_USBHOST(x)
 
 class UsbConfigXtracter {
 public:

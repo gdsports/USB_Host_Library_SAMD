@@ -20,31 +20,11 @@ export PATH="${IDEDIR}:${PATH}"
 cd ${IDEDIR}
 which arduino
 # Install board package
-arduino --pref "compiler.warning_level=more" --save-prefs
+arduino --pref "compiler.warning_level=default" --save-prefs
 arduino --install-boards "arduino:samd"
 BOARD="arduino:samd:arduino_zero_edbg"
 arduino --board "${BOARD}" --save-prefs
-# Install patches to SAMD board package
-cd ${IDEDIR}/portable/packages/arduino/hardware/samd
-if [ -d ${SAMDVER} ]
-then
-    rm -rf ${SAMDVER}
-    if [ -d ~/Sync/ArduinoCore-samd-gdsports ]
-    then
-        ln -s ~/Sync/ArduinoCore-samd-gdsports ${SAMDVER}
-    else
-        git clone https://github.com/gdsports/ArduinoCore-samd.git ${SAMDVER}
-        cd ${SAMDVER}
-        git checkout patch_bulk_ep
-    fi
-else
-    echo "SAMD board package ${SAMDVER} not found"
-    exit
-fi
-# Build board package examples, MouseController, KeyboardController, etc.
-cd ${SAMDVER}/libraries/USBHost/examples
 CC="arduino --verify --board ${BOARD}"
-find . -name '*.ino' -print0 | xargs -0 -n 1 $CC
 # Install MIDI library for USBH_MIDI examples
 arduino --install-library "MIDI Library"
 cd $LIBDIR
@@ -57,6 +37,7 @@ then
 else
     git clone https://github.com/gdsports/USB_Host_Library_SAMD
 fi
+# Build all examples.
 cd USB_Host_Library_SAMD/examples
 find . -name '*.ino' -print0 | xargs -0 -n 1 $CC
 #

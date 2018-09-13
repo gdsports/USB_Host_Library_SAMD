@@ -3,12 +3,6 @@
 
 #include "pgmstrings.h"
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 class ACMAsyncOper : public CDCAsyncOper
 {
 public:

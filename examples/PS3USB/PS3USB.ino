@@ -6,12 +6,6 @@
 
 #include <PS3USB.h>
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 USBHost UsbH;
 /* You can create the instance of the class in two ways */
 PS3USB PS3(&UsbH); // This will just create the instance

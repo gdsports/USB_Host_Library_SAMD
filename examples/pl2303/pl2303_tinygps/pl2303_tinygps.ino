@@ -12,12 +12,6 @@
 
 #include <TinyGPS.h>
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 /* This sample code demonstrates the normal use of a TinyGPS object.
     Modified to be used with USB Host Shield Library r2.0
     and USB Host Shield 2.0

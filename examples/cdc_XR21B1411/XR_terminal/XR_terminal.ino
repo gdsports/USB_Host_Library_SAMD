@@ -1,11 +1,5 @@
 #include <cdc_XR21B1411.h>
 
-// Satisfy IDE, which only needs to see the include statment in the ino.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 class ACMAsyncOper : public CDCAsyncOper
 {
 public:

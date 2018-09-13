@@ -9,12 +9,6 @@
 #include "KeyboardParser.h"
 #include "MouseParser.h"
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 USBHost UsbH;
 //USBHub Hub1(&UsbH); // Some dongles have a hub inside
 BTD Btd(&UsbH); // You have to create the Bluetooth Dongle instance like so

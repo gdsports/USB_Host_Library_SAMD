@@ -4,7 +4,6 @@
   send me an e-mail:  kristianl@tkjelectronics.com
 */
 
-#include <SPI.h>
 #include "SRWS1.h"
 
 USBHost UsbH;

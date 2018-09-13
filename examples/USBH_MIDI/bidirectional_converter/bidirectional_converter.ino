@@ -16,12 +16,6 @@
 #include <usbh_midi.h>
 #include <usbhub.h>
 
-// Satisfy the IDE, which needs to see the include statment in the ino too.
-#ifdef dobogusinclude
-#include <spi4teensy3.h>
-#endif
-#include <SPI.h>
-
 #if defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD)
     struct MySettings : public midi::DefaultSettings
     {

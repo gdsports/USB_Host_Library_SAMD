@@ -1,5 +1,14 @@
 #include "hidjoystickrptparser.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if (USB_VID==0x2341 && defined(ARDUINO_SAMD_ZERO)) || (USB_VID==0x2a03 && defined(ARDUINO_SAM_ZERO))
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 JoystickReportParser::JoystickReportParser(JoystickEvents *evt) :
 joyEvents(evt),
 oldHat(0xDE),
@@ -55,31 +64,31 @@ void JoystickReportParser::Parse(HID *hid, uint32_t is_rpt_id, uint32_t len, uin
 }
 
 void JoystickEvents::OnGamePadChanged(const GamePadEventData *evt) {
-        Serial.print("X1: ");
+        SerialDebug.print("X1: ");
         PrintHex<uint8_t > (evt->X, 0x80);
-        Serial.print("\tY1: ");
+        SerialDebug.print("\tY1: ");
         PrintHex<uint8_t > (evt->Y, 0x80);
-        Serial.print("\tX2: ");
+        SerialDebug.print("\tX2: ");
         PrintHex<uint8_t > (evt->Z1, 0x80);
-        Serial.print("\tY2: ");
+        SerialDebug.print("\tY2: ");
         PrintHex<uint8_t > (evt->Z2, 0x80);
-        Serial.print("\tRz: ");
+        SerialDebug.print("\tRz: ");
         PrintHex<uint8_t > (evt->Rz, 0x80);
-        Serial.println("");
+        SerialDebug.println("");
 }
 
 void JoystickEvents::OnHatSwitch(uint8_t hat) {
-        Serial.print("Hat Switch: ");
+        SerialDebug.print("Hat Switch: ");
         PrintHex<uint8_t > (hat, 0x80);
-        Serial.println("");
+        SerialDebug.println("");
 }
 
 void JoystickEvents::OnButtonUp(uint8_t but_id) {
-        Serial.print("Up: ");
-        Serial.println(but_id, DEC);
+        SerialDebug.print("Up: ");
+        SerialDebug.println(but_id, DEC);
 }
 
 void JoystickEvents::OnButtonDn(uint8_t but_id) {
-        Serial.print("Dn: ");
-        Serial.println(but_id, DEC);
+        SerialDebug.print("Dn: ");
+        SerialDebug.println(but_id, DEC);
 }

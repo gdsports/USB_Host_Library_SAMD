@@ -58,6 +58,11 @@ solution is simple. Unplug the USB OTG to host cable/adaper, plug in the MKR
 board to computer running the IDE as usual. Press the IDE Upload icon. When the
 IDE status shows "Uploading", double click the MKR board reset button.
 
+## Adafruit M0 and M4 Boards
+
+The Adafruit Metro M4 (SAMD51) works with this library. Follow Adafruit's
+tutorial to install the Adafruit SAMD board package. Other Arduino compatible
+(for example Adafruit, SparkFun, etc.) SAMD boards should work.
 
 ## Testing
 
@@ -69,6 +74,7 @@ do extensive testing. Hardware I have connected and tested minimally:
 
 * USB keyboard and mouse
 * Xbox One USB (genuine)
+* Xbox 360 USB (clone)
 * PS3 USB (cheap clone)
 * ftdi serial
 * pl2303 serial

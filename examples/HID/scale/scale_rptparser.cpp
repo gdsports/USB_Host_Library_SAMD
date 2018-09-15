@@ -4,6 +4,15 @@
 #endif
 #include "scale_rptparser.h"
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if (USB_VID==0x2341 && defined(ARDUINO_SAMD_ZERO)) || (USB_VID==0x2a03 && defined(ARDUINO_SAM_ZERO))
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 const char* UNITS[13] = {
     "units",        // unknown unit
     "mg",           // milligram
@@ -70,7 +79,7 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 		
 		const char inv_report[]="Invalid report!";
 		
-		Serial.println(inv_report);
+		SerialDebug.println(inv_report);
 		LcdPrint(inv_report);
 		
 		return;
@@ -80,17 +89,17 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 	switch( evt->status ) {
 		
 		case REPORT_FAULT:
-			Serial.println(F("Report fault"));
+			SerialDebug.println(F("Report fault"));
 			break;
 			
 		case ZEROED:
-			Serial.println(F("Scale zero set"));
+			SerialDebug.println(F("Scale zero set"));
 			break;
 			
 		case WEIGHING: {
 			
 			const char progress[] = "Weighing...";
-			Serial.println(progress);
+			SerialDebug.println(progress);
 			LcdPrint(progress);
 			break;
 		}
@@ -102,10 +111,10 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 
       	
 
-      	Serial.print(F("Weight: "));
-				Serial.print( weight );
-				Serial.print(F(" "));
-				Serial.println( UNITS[ evt->unit ]);
+      	SerialDebug.print(F("Weight: "));
+				SerialDebug.print( weight );
+				SerialDebug.print(F(" "));
+				SerialDebug.println( UNITS[ evt->unit ]);
 				
 				LcdPrint("Weight: ");
 				dtostrf( weight, 4, 2, buf );
@@ -119,7 +128,7 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 		case WEIGHT_NEGATIVE: {
 			
 			const char negweight[] = "Negative weight";
-			Serial.println(negweight);
+			SerialDebug.println(negweight);
 			LcdPrint(negweight);
 			break;
 		}
@@ -127,25 +136,25 @@ void ScaleEvents::OnScaleChanged(const ScaleEventData *evt)
 		case OVERWEIGHT: {
 		
 			const char overweight[] = "Max.weight reached";
-			Serial.println(overweight);
+			SerialDebug.println(overweight);
 			LcdPrint( overweight );
 			break;
 		}
 		
 		case CALIBRATE_ME:
 			
-			Serial.println(F("Scale calibration required"));
+			SerialDebug.println(F("Scale calibration required"));
 			break;
 			
 		case ZERO_ME:
 			
-			Serial.println(F("Scale zeroing required"));
+			SerialDebug.println(F("Scale zeroing required"));
 			break;
 			
 		default:
 			
-			Serial.print(F("Undefined status code: "));
-			Serial.println( evt->status );
+			SerialDebug.print(F("Undefined status code: "));
+			SerialDebug.println( evt->status );
 			break;	
 			
 	}//switch( evt->status...

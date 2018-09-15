@@ -16,7 +16,7 @@
 // On SAMD boards where the native USB port is also the serial console, use
 // Serial1 for the serial console. This applies to all SAMD boards except for
 // Arduino Zero and M0 boards.
-#if defined(ARDUINO_SAMD_ZERO) || defined(ARDUINO_SAM_ZERO)
+#if (USB_VID==0x2341 && defined(ARDUINO_SAMD_ZERO)) || (USB_VID==0x2a03 && defined(ARDUINO_SAM_ZERO))
 #define SerialDebug SERIAL_PORT_MONITOR
 #else
 #define SerialDebug Serial1
@@ -39,7 +39,7 @@ void setup()
   SerialDebug.begin(115200);
 
   if (UsbH.Init()) {
-    Serial.println("USB host did not start");
+    SerialDebug.println("USB host did not start");
     while (1); //halt
   }
   delay( 200 );
@@ -65,7 +65,7 @@ void MIDI_poll()
     vid = Midi.idVendor();
     pid = Midi.idProduct();
     sprintf(buf, "VID:%04X, PID:%04X", vid, pid);
-    Serial.println(buf);
+    SerialDebug.println(buf);
   }
   if (Midi.RecvData(&rcvd,  bufMidi) == 0 ) {
     uint32_t time = (uint32_t)millis();

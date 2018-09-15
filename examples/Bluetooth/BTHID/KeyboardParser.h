@@ -1,6 +1,15 @@
 #ifndef __kbdrptparser_h_
 #define __kbdrptparser_h_
 
+// On SAMD boards where the native USB port is also the serial console, use
+// Serial1 for the serial console. This applies to all SAMD boards except for
+// Arduino Zero and M0 boards.
+#if (USB_VID==0x2341 && defined(ARDUINO_SAMD_ZERO)) || (USB_VID==0x2a03 && defined(ARDUINO_SAM_ZERO))
+#define SerialDebug SERIAL_PORT_MONITOR
+#else
+#define SerialDebug Serial1
+#endif
+
 class KbdRptParser : public KeyboardReportParser {
   protected:
     virtual uint8_t HandleLockingKeys(HID *hid, uint8_t key);
@@ -18,15 +27,15 @@ uint8_t KbdRptParser::HandleLockingKeys(HID *hid, uint8_t key) {
 
   switch (key) {
     case UHS_HID_BOOT_KEY_NUM_LOCK:
-      Serial.println(F("Num lock"));
+      SerialDebug.println(F("Num lock"));
       kbdLockingKeys.kbdLeds.bmNumLock = ~kbdLockingKeys.kbdLeds.bmNumLock;
       break;
     case UHS_HID_BOOT_KEY_CAPS_LOCK:
-      Serial.println(F("Caps lock"));
+      SerialDebug.println(F("Caps lock"));
       kbdLockingKeys.kbdLeds.bmCapsLock = ~kbdLockingKeys.kbdLeds.bmCapsLock;
       break;
     case UHS_HID_BOOT_KEY_SCROLL_LOCK:
-      Serial.println(F("Scroll lock"));
+      SerialDebug.println(F("Scroll lock"));
       kbdLockingKeys.kbdLeds.bmScrollLock = ~kbdLockingKeys.kbdLeds.bmScrollLock;
       break;
   }
@@ -42,23 +51,23 @@ uint8_t KbdRptParser::HandleLockingKeys(HID *hid, uint8_t key) {
 void KbdRptParser::PrintKey(uint8_t m, uint8_t key) {
   MODIFIERKEYS mod;
   *((uint8_t*)&mod) = m;
-  Serial.print((mod.bmLeftCtrl == 1) ? F("C") : F(" "));
-  Serial.print((mod.bmLeftShift == 1) ? F("S") : F(" "));
-  Serial.print((mod.bmLeftAlt == 1) ? F("A") : F(" "));
-  Serial.print((mod.bmLeftGUI == 1) ? F("G") : F(" "));
+  SerialDebug.print((mod.bmLeftCtrl == 1) ? F("C") : F(" "));
+  SerialDebug.print((mod.bmLeftShift == 1) ? F("S") : F(" "));
+  SerialDebug.print((mod.bmLeftAlt == 1) ? F("A") : F(" "));
+  SerialDebug.print((mod.bmLeftGUI == 1) ? F("G") : F(" "));
 
-  Serial.print(F(" >"));
+  SerialDebug.print(F(" >"));
   PrintHex<uint8_t>(key, 0x80);
-  Serial.print(F("< "));
+  SerialDebug.print(F("< "));
 
-  Serial.print((mod.bmRightCtrl == 1) ? F("C") : F(" "));
-  Serial.print((mod.bmRightShift == 1) ? F("S") : F(" "));
-  Serial.print((mod.bmRightAlt == 1) ? F("A") : F(" "));
-  Serial.println((mod.bmRightGUI == 1) ? F("G") : F(" "));
+  SerialDebug.print((mod.bmRightCtrl == 1) ? F("C") : F(" "));
+  SerialDebug.print((mod.bmRightShift == 1) ? F("S") : F(" "));
+  SerialDebug.print((mod.bmRightAlt == 1) ? F("A") : F(" "));
+  SerialDebug.println((mod.bmRightGUI == 1) ? F("G") : F(" "));
 };
 
 void KbdRptParser::OnKeyDown(uint8_t mod, uint8_t key) {
-  Serial.print(F("DN "));
+  SerialDebug.print(F("DN "));
   PrintKey(mod, key);
   uint8_t c = OemToAscii(mod, key);
 
@@ -74,32 +83,32 @@ void KbdRptParser::OnControlKeysChanged(uint8_t before, uint8_t after) {
   *((uint8_t*)&afterMod) = after;
 
   if (beforeMod.bmLeftCtrl != afterMod.bmLeftCtrl)
-    Serial.println(F("LeftCtrl changed"));
+    SerialDebug.println(F("LeftCtrl changed"));
   if (beforeMod.bmLeftShift != afterMod.bmLeftShift)
-    Serial.println(F("LeftShift changed"));
+    SerialDebug.println(F("LeftShift changed"));
   if (beforeMod.bmLeftAlt != afterMod.bmLeftAlt)
-    Serial.println(F("LeftAlt changed"));
+    SerialDebug.println(F("LeftAlt changed"));
   if (beforeMod.bmLeftGUI != afterMod.bmLeftGUI)
-    Serial.println(F("LeftGUI changed"));
+    SerialDebug.println(F("LeftGUI changed"));
 
   if (beforeMod.bmRightCtrl != afterMod.bmRightCtrl)
-    Serial.println(F("RightCtrl changed"));
+    SerialDebug.println(F("RightCtrl changed"));
   if (beforeMod.bmRightShift != afterMod.bmRightShift)
-    Serial.println(F("RightShift changed"));
+    SerialDebug.println(F("RightShift changed"));
   if (beforeMod.bmRightAlt != afterMod.bmRightAlt)
-    Serial.println(F("RightAlt changed"));
+    SerialDebug.println(F("RightAlt changed"));
   if (beforeMod.bmRightGUI != afterMod.bmRightGUI)
-    Serial.println(F("RightGUI changed"));
+    SerialDebug.println(F("RightGUI changed"));
 };
 
 void KbdRptParser::OnKeyUp(uint8_t mod, uint8_t key) {
-  Serial.print(F("UP "));
+  SerialDebug.print(F("UP "));
   PrintKey(mod, key);
 };
 
 void KbdRptParser::OnKeyPressed(uint8_t key) {
-  Serial.print(F("ASCII: "));
-  Serial.println((char)key);
+  SerialDebug.print(F("ASCII: "));
+  SerialDebug.println((char)key);
 };
 
 #endif

@@ -38,7 +38,6 @@ void setup()
   _MIDI_SERIAL_PORT.begin(31250);
 
   if (UsbH.Init()) {
-    Serial.println("Usb host did not start");
     while (1); //halt
   }
   delay( 200 );

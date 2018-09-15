@@ -55,7 +55,7 @@ uint32_t USBHub::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         uint32_t len = 0;
         uint32_t cd_len = 0;
 
-        //USBTRACE("\r\nHub Init Start ");
+        USBTRACE("\r\nHub Init Start ");
         //D_PrintHex<uint8_t > (bInitState, 0x80);
 
         AddressPool &addrPool = pUsb->GetAddressPool();
@@ -121,7 +121,7 @@ uint32_t USBHub::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
                 return rcode;
         }
 
-        //USBTRACE2("\r\nHub address: ", bAddress );
+        USBTRACE2("\r\nHub address: ", bAddress );
 
         // Restore p->epinfo
         p->epinfo = oldep_ptr;
@@ -192,7 +192,7 @@ uint32_t USBHub::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         //                bInitState = 0;
         //}
         //bInitState = 0;
-        //USBTRACE("...OK\r\n");
+        USBTRACE("...OK\r\n");
         return 0;
 
         // Oleg, No debugging?? -- xxxajk

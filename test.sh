@@ -37,9 +37,16 @@ then
 else
     git clone https://github.com/gdsports/USB_Host_Library_SAMD
 fi
-# Build all examples.
+# Build all examples for Arduino Zero
 cd USB_Host_Library_SAMD/examples
-find . -name '*.ino' -print0 | xargs -0 -n 1 $CC
-#
-#cd
-#rm -rf $WORKDIR
+find . -name '*.ino' -print0 | xargs -0 -n 1 $CC >/tmp/zero_$$.txt 2>&1
+# Build all examples for Arduino MKR Zero
+BOARD="arduino:samd:mkrzero"
+CC="arduino --verify --board ${BOARD}"
+find . -name '*.ino' -print0 | xargs -0 -n 1 $CC >/tmp/mkrzero_$$.txt 2>&1
+# Build all examples for Adafruit Metro M4
+arduino --pref "boardsmanager.additional.urls=https://adafruit.github.io/arduino-board-index/package_adafruit_index.json" --save-prefs
+arduino --install-boards "adafruit:samd"
+BOARD="adafruit:samd:adafruit_metro_m4"
+CC="arduino --verify --board ${BOARD}"
+find . -name '*.ino' -print0 | xargs -0 -n 1 $CC >/tmp/m4_$$.txt 2>&1

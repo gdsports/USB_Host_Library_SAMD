@@ -3,12 +3,19 @@ USB Host Library for Arduino SAMD boards
 
 This library is based on the [USB Host Shield Library
 2.0](https://github.com/felis/USB_Host_Shield_2.0) with modifications to work
-on Arduino SAMD boards. The example programs should work on Zero, M0, and MKR
-family. This uses the native USB port in USB host mode. The USB host shield
-with MAX3421E is not supported by this library.
+on Arduino and Arduino compatible SAMD boards. Be sure to see the README for
+details on Bluetooth pairing, etc. because the information is not repeated
+here.
+
+This library would not be possible without the work of the USB Host Shield
+Library developers. Thank you!
+
+The example programs should work on Zero, M0, and MKR family on the native USB
+port in USB host mode. The USB host shield with MAX3421E is not supported by
+this library.
 
 Early versions of this library required some changes to the SAMD board package.
-The current version does not so it works like a regular Arduino library.
+The current version does not, so it works like a regular Arduino library.
 
 ![Image of MKR Zero connected to Xbox One controller](./images/mkrxbox.jpg)
 
@@ -46,12 +53,12 @@ TXD     | 13->RX  (Serial1)
 The CP2104 board passes through the USB 5V to the MKR VIN power input pin. The
 MKR board powers the Xbox controller via its USB port.
 
-## MKR Boards
+## Arduino MKR Boards
 
 The Zero and M0 boards have two USB ports. The programming port is used for
 sketch uploads and serial console. The native USB port with a USB OTG to host
 cable/adapter is used for the USB device (for example, Xbox controller). When
-using a MKR board, the native USB port is used for both.
+using a MKR board, the native USB port is used for both functions.
 
 The IDE automatic upload does not work on MKR boards when using USB host. The
 solution is simple. Unplug the USB OTG to host cable/adaper, plug in the MKR
@@ -60,9 +67,26 @@ IDE status shows "Uploading", double click the MKR board reset button.
 
 ## Adafruit M0 and M4 Boards
 
-The Adafruit Metro M4 (SAMD51) works with this library. Follow Adafruit's
-tutorial to install the Adafruit SAMD board package. Other Arduino compatible
-(for example Adafruit, SparkFun, etc.) SAMD boards should work.
+The Adafruit Metro M4 (SAMD51) and Trinket M0 (SAMD21) work with this library.
+Follow Adafruit's tutorial to install the Adafruit SAMD board package. Other
+Arduino compatible (for example Adafruit, SparkFun, etc.) SAMD boards might
+work.
+
+![Image of Metro M4 connected to PS3 controller clone via Bluetooth](./images/ps3bt.jpg)
+
+Components starting from the Metro M4 board then moving clockwise.
+
+* Adafruit Metro M4 with USB OTG to host adapter and USB Bluetooth plug
+* USB FTDI serial board for serial console and power
+* USB phone/tablet charger, 5V
+* Playstation 3 controller (clone) with Bluetooth
+
+FTDI    | Metro M4 board
+------  | ---------
+5V      | VIN
+GND     | GND
+RXD     | TX-1  (Serial1)
+TXD     | RX-0  (Serial1)
 
 ## Testing
 
@@ -80,6 +104,9 @@ do extensive testing. Hardware I have connected and tested minimally:
 * pl2303 serial
 * cdc acm serial (Uno with 16u2)
 * MIDI USB Korg NanoKontrol2
+* Bluetooth SPP, BTHID (BT keyboard), and PS3BT (Playstation 3 controller)
+* ADK ArduinoBlinkLED
+* USB hubs work but not reliable yet
 
 ## Building the development environment
 
@@ -96,8 +123,7 @@ The script use the IDE command line interface (CLI) which is documented
 
 
 ```
-IDEVER="1.8.6"
-SAMDVER="1.6.19"
+IDEVER="1.8.7"
 # Change to home directory
 cd
 # Create work directory

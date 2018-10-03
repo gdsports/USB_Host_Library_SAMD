@@ -551,8 +551,8 @@ private:
         uint16_t hci_event_flag; // HCI flags of received Bluetooth events
         uint8_t inquiry_counter;
 
-        uint8_t hcibuf[BULK_MAXPKTSIZE]; // General purpose buffer for HCI data
-        uint8_t l2capinbuf[BULK_MAXPKTSIZE]; // General purpose buffer for L2CAP in data
+        uint8_t hcibuf[BULK_MAXPKTSIZE] __attribute__((aligned(4))); // General purpose buffer for HCI data
+        uint8_t l2capinbuf[BULK_MAXPKTSIZE] __attribute__((aligned(4))); // General purpose buffer for L2CAP in data
         uint8_t l2capoutbuf[14]; // General purpose buffer for L2CAP out data
 
         /* State machines */

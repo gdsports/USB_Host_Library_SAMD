@@ -228,7 +228,7 @@ private:
         bool L2Clicked; // These buttons are analog, so we use we use these bools to check if they where clicked or not
         bool R2Clicked;
 
-        uint8_t readBuf[XBOX_ONE_EP_MAXPKTSIZE]; // General purpose buffer for input data
+        uint8_t readBuf[XBOX_ONE_EP_MAXPKTSIZE] __attribute__((aligned(4))); // General purpose buffer for input data
         uint8_t cmdCounter;
 
         void readReport(); // Used to read the incoming data

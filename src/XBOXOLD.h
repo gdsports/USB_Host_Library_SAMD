@@ -174,7 +174,7 @@ private:
 
         int16_t hatValue[4]; // Joystick values
 
-        uint8_t readBuf[EP_MAXPKTSIZE]; // General purpose buffer for input data
+        uint8_t readBuf[EP_MAXPKTSIZE] __attribute__((aligned(4))); // General purpose buffer for input data
 
         void readReport(); // Read incoming data
         void printReport(uint16_t length); // Print incoming date

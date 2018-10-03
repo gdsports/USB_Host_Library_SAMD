@@ -244,7 +244,7 @@ uint32_t USBHub::Poll() {
 
 uint32_t USBHub::CheckHubStatus() {
         uint32_t rcode;
-        uint8_t buf[8];
+        uint8_t buf[8] __attribute__((aligned(4)));
         uint16_t read = 1;
 
         rcode = pUsb->inTransfer(bAddress, 1, &read, buf);

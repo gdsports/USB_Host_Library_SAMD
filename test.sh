@@ -1,6 +1,5 @@
 #!/bin/bash
-IDEVER="1.8.6"
-SAMDVER="1.6.19"
+IDEVER="1.8.7"
 WORKDIR="/tmp/autobuild_$$"
 mkdir -p ${WORKDIR}
 # Install Ardino IDE in work directory
@@ -22,6 +21,8 @@ which arduino
 # Install board package
 arduino --pref "compiler.warning_level=default" --save-prefs
 arduino --install-boards "arduino:samd"
+arduino --pref "boardsmanager.additional.urls=https://adafruit.github.io/arduino-board-index/package_adafruit_index.json" --save-prefs
+arduino --install-boards "adafruit:samd"
 BOARD="arduino:samd:arduino_zero_edbg"
 arduino --board "${BOARD}" --save-prefs
 CC="arduino --verify --board ${BOARD}"
@@ -45,8 +46,6 @@ BOARD="arduino:samd:mkrzero"
 CC="arduino --verify --board ${BOARD}"
 find . -name '*.ino' -print0 | xargs -0 -n 1 $CC >/tmp/mkrzero_$$.txt 2>&1
 # Build all examples for Adafruit Metro M4
-arduino --pref "boardsmanager.additional.urls=https://adafruit.github.io/arduino-board-index/package_adafruit_index.json" --save-prefs
-arduino --install-boards "adafruit:samd"
 BOARD="adafruit:samd:adafruit_metro_m4"
 CC="arduino --verify --board ${BOARD}"
 find . -name '*.ino' -print0 | xargs -0 -n 1 $CC >/tmp/m4_$$.txt 2>&1

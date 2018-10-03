@@ -377,7 +377,7 @@ uint32_t HIDUniversal::Poll() {
         if((long)(millis() - qNextPollTime) >= 0L) {
                 qNextPollTime = millis() + pollInterval;
 
-                uint8_t buf[constBuffLen];
+                uint8_t buf[constBuffLen] __attribute__((aligned(4)));
 
                 for(uint8_t i = 0; i < bNumIface; i++) {
                         uint8_t index = hidInterfaces[i].epIndex[epInterruptInIndex];

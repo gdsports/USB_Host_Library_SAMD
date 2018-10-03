@@ -424,7 +424,7 @@ uint8_t USBH_MIDI::RecvRawData(uint8_t *outBuf)
 /* Send data to MIDI device */
 uint8_t USBH_MIDI::SendData(uint8_t *dataptr, uint8_t nCable)
 {
-        uint8_t buf[4];
+        uint8_t buf[4] __attribute__((aligned(4)));
         uint8_t msg;
 
         msg = dataptr[0];
@@ -563,7 +563,7 @@ uint16_t USBH_MIDI::countSysExDataSize(uint8_t *dataptr)
 /* Send SysEx message to MIDI device */
 uint8_t USBH_MIDI::SendSysEx(uint8_t *dataptr, uint16_t datasize, uint8_t nCable)
 {
-        uint8_t buf[MIDI_EVENT_PACKET_SIZE];
+        uint8_t buf[MIDI_EVENT_PACKET_SIZE] __attribute__((aligned(4)));
         uint8_t rc = 0;
         uint16_t n = datasize;
         uint16_t pktSize = (n*10/3+7)/10*4;   //Calculate total USB MIDI packet size

@@ -254,7 +254,7 @@ public:
         uint32_t Init();
 private:
         uint32_t UHD_Pipe_Alloc(uint32_t ul_dev_addr, uint32_t ul_dev_ep, uint32_t ul_type, uint32_t ul_dir, uint32_t ul_maxsize, uint32_t ul_interval, uint32_t ul_nb_bank);
-        uint32_t SetPipeAddress(uint32_t addr, uint32_t ep, EpInfo **ppep, uint32_t &nak_limit);
+        uint32_t SetPipeAddress(uint32_t addr, uint32_t ep, EpInfo **ppep, uint32_t &nak_limit, uint32_t direction);
         uint32_t OutTransfer(EpInfo *pep, uint32_t nak_limit, uint32_t nbytes, uint8_t *data);
         uint32_t InTransfer(EpInfo *pep, uint32_t nak_limit, uint16_t *nbytesptr, uint8_t *data, uint8_t bInterval = 0);
         uint32_t AttemptConfig(uint32_t driver, uint32_t parent, uint32_t port, uint32_t lowspeed);

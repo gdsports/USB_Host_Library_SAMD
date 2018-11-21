@@ -88,6 +88,14 @@ GND     | GND
 RXD     | TX-1  (Serial1)
 TXD     | RX-0  (Serial1)
 
+## Related projects
+
+* [Xbox Adaptive Controller Joystick Splitter](https://github.com/gdsports/xac-joystick-splitter)
+* [MIDI DIN to MIDI USB Host Converter](https://github.com/gdsports/midiuartusbh)
+* [Portable MIDI dsp-G1 Synth](https://github.com/gdsports/dspg1)
+* [Control DC motor using an Xbox One controller](https://github.com/gdsports/xbox1motor)
+* [Control DC motor with PS3 game controller](https://github.com/gdsports/ps3motor)
+
 ## Testing
 
 This is unstable and may break at any time. It works for me but may not work

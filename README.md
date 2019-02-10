@@ -19,6 +19,19 @@ The current version does not, so it works like a regular Arduino library.
 
 ![Image of MKR Zero connected to Xbox One controller](./images/mkrxbox.jpg)
 
+## USB Host Co-Processor
+
+The related [USB Host Co-Processor](https://github.com/gdsports/usbhostcopro)
+project encapsulates some of the USB host drivers of this project (MIDI and
+keyboard so far) in an Adafruit Trinket M0. This allows boards without USB
+hardware or without USB host software support to use USB host mode by
+connecting via UART to a Trinket M0.
+
+To make using the firmware even easier, the repo includes UF2 binary releases
+that can be burned into a Trinket M0 by dragging and dropping the UF2 file on
+the TRINKETBOOT USB drive. It is not necessary to install the Arduino IDE,
+libraries, or USB serial driver.
+
 ## Xbox and MKR board example
 
 Components from left to right:
@@ -95,6 +108,9 @@ TXD     | RX-0  (Serial1)
 * [Portable MIDI dsp-G1 Synth](https://github.com/gdsports/dspg1)
 * [Control DC motor using an Xbox One controller](https://github.com/gdsports/xbox1motor)
 * [Control DC motor with PS3 game controller](https://github.com/gdsports/ps3motor)
+* [RFM69 Wireless USB Keyboard](https://github.com/gdsports/rfm69-usb-devices)
+* [USB Host Co-Processor](https://github.com/gdsports/usbhostcopro)
+* [CircuitPython USB Host MIDI](https://github.com/gdsports/circuitpython_usb_host_midi)
 
 ## Testing
 

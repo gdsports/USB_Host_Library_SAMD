@@ -131,6 +131,8 @@ do extensive testing. Hardware I have connected and tested minimally:
 * Bluetooth SPP, BTHID (BT keyboard), and PS3BT (Playstation 3 controller)
 * ADK ArduinoBlinkLED
 * USB hubs work but not reliable yet
+* Logitech Extreme 3D Pro joystick
+* Thrustmaster T.16000M FCS joystick
 
 ## Building the development environment
 

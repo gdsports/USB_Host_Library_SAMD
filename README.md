@@ -124,6 +124,7 @@ do extensive testing. Hardware I have connected and tested minimally:
 * Xbox One USB (genuine)
 * Xbox 360 USB (clone)
 * PS3 USB (cheap clone)
+* PS4 USB (genuine)
 * ftdi serial
 * pl2303 serial
 * cdc acm serial (Uno with 16u2)

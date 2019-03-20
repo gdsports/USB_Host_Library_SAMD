@@ -1,11 +1,18 @@
 /* Copyright (C) 2011 Circuits At Home, LTD. All rights reserved.
 
-This software may be distributed and modified under the terms of the GNU
-General Public License version 2 (GPL2) as published by the Free Software
-Foundation and appearing in the file GPL2.TXT included in the packaging of
-this file. Please note that GPL2 Section 2[b] requires that all works based
-on this software must also be made publicly available under the terms of
-the GPL2 ("Copyleft").
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 Contact information
 -------------------
@@ -27,10 +34,11 @@ e-mail   :  support@circuitsathome.com
 #define TRACE_USBHOST(x)
 
 class UsbConfigXtracter {
-public:
-        //virtual void ConfigXtract(const USB_CONFIGURATION_DESCRIPTOR *conf) = 0;
-        //virtual void InterfaceXtract(uint32_t conf, const USB_INTERFACE_DESCRIPTOR *iface) = 0;
-	virtual void EndpointXtract(uint32_t conf, uint32_t iface, uint32_t alt, uint32_t proto, const USB_ENDPOINT_DESCRIPTOR *ep) = 0;
+	public:
+		//virtual void ConfigXtract(const USB_CONFIGURATION_DESCRIPTOR *conf) = 0;
+		//virtual void InterfaceXtract(uint32_t conf, const USB_INTERFACE_DESCRIPTOR *iface) = 0;
+		virtual void EndpointXtract(uint32_t conf __attribute__((unused)), uint32_t iface __attribute__((unused)), uint32_t alt __attribute__((unused)), uint32_t proto __attribute__((unused)), const USB_ENDPOINT_DESCRIPTOR *ep __attribute__((unused))) {
+		};
 };
 
 #define CP_MASK_COMPARE_CLASS			1
@@ -69,7 +77,7 @@ public:
                 UseOr = true;
         }
 	ConfigDescParser(UsbConfigXtracter *xtractor);
-	virtual void Parse(const uint32_t len, const uint8_t *pbuf, const uint32_t &offset);
+	void Parse(const uint32_t len, const uint8_t *pbuf, const uint32_t &offset);
 };
 
 template <const uint8_t CLASS_ID, const uint8_t SUBCLASS_ID, const uint8_t PROTOCOL_ID, const uint8_t MASK>
@@ -89,17 +97,19 @@ void ConfigDescParser<CLASS_ID, SUBCLASS_ID, PROTOCOL_ID, MASK>::Parse(const uin
 	uint32_t	cntdn = len;
 	uint8_t		*p = (uint8_t*)pbuf;
 
-	while (cntdn)
+	while (cntdn) {
+		USBTRACE2("ConfDescParser::Parse cntdn:", cntdn);
 		if(!ParseDescriptor(&p, &cntdn))
 			return;
+	}
 }
 
 /* Parser for the configuration descriptor. Takes values for class, subclass, protocol fields in interface descriptor and
   compare masks for them. When the match is found, calls EndpointXtract passing buffer containing endpoint descriptor */
 template <const uint8_t CLASS_ID, const uint8_t SUBCLASS_ID, const uint8_t PROTOCOL_ID, const uint8_t MASK>
 bool ConfigDescParser<CLASS_ID, SUBCLASS_ID, PROTOCOL_ID, MASK>::ParseDescriptor(uint8_t **pp, uint32_t *pcntdn) {
-        USB_CONFIGURATION_DESCRIPTOR* ucd = reinterpret_cast<USB_CONFIGURATION_DESCRIPTOR*>(varBuffer);
-        USB_INTERFACE_DESCRIPTOR* uid = reinterpret_cast<USB_INTERFACE_DESCRIPTOR*>(varBuffer);
+	USB_CONFIGURATION_DESCRIPTOR* ucd = reinterpret_cast<USB_CONFIGURATION_DESCRIPTOR*>(varBuffer);
+	USB_INTERFACE_DESCRIPTOR* uid = reinterpret_cast<USB_INTERFACE_DESCRIPTOR*>(varBuffer);
 	switch(stateParseDescr) {
 		case 0:
 			theBuffer.valueSize = 2;
@@ -112,60 +122,57 @@ bool ConfigDescParser<CLASS_ID, SUBCLASS_ID, PROTOCOL_ID, MASK>::ParseDescriptor
 			dscrType		= *((uint8_t*)theBuffer.pValue + 1);
 			stateParseDescr	= 2;
 		case 2:
-                        // This is a sort of hack. Assuming that two bytes are all ready in the buffer
-			//	the pointer is positioned two bytes ahead in order for the rest of descriptor
-			//	to be read right after the size and the type fields.
+			// This is a sort of hack. Assuming that two bytes are all ready in the buffer
+			// the pointer is positioned two bytes ahead in order for the rest of descriptor
+			// to be read right after the size and the type fields.
 			// This should be used carefully. varBuffer should be used directly to handle data
-			//	in the buffer.
+			// in the buffer.
 			theBuffer.pValue	= varBuffer + 2;
 			stateParseDescr		= 3;
 		case 3:
-                        switch(dscrType) {
-                                case USB_DESCRIPTOR_INTERFACE:
-                                        isGoodInterface = false;
-                                case USB_DESCRIPTOR_CONFIGURATION:
-                                        theBuffer.valueSize = sizeof (USB_CONFIGURATION_DESCRIPTOR) - 2;
-                                        break;
-                                case USB_DESCRIPTOR_ENDPOINT:
-                                        theBuffer.valueSize = sizeof (USB_ENDPOINT_DESCRIPTOR) - 2;
+			switch(dscrType) {
+				case USB_DESCRIPTOR_INTERFACE:
+					isGoodInterface = false;
 					break;
+				case USB_DESCRIPTOR_CONFIGURATION:
+				case USB_DESCRIPTOR_ENDPOINT:
 				case HID_DESCRIPTOR_HID:
-					theBuffer.valueSize = dscrLen - 2;
 					break;
 			}
+			theBuffer.valueSize = dscrLen - 2;
 			valParser.Initialize(&theBuffer);
-			stateParseDescr		= 4;
+			stateParseDescr	= 4;
 		case 4:
-                        switch(dscrType) {
+			switch(dscrType) {
 				case USB_DESCRIPTOR_CONFIGURATION:
-                                        if(!valParser.Parse(pp, pcntdn))
-                                                return false;
-                                        confValue = ucd->bConfigurationValue;
+					if(!valParser.Parse(pp, pcntdn))
+						return false;
+					confValue = ucd->bConfigurationValue;
 					break;
 				case USB_DESCRIPTOR_INTERFACE:
-                                        if(!valParser.Parse(pp, pcntdn))
-                                                return false;
-                                        if((MASK & CP_MASK_COMPARE_CLASS) && uid->bInterfaceClass != CLASS_ID)
-                                                break;
-                                        if((MASK & CP_MASK_COMPARE_SUBCLASS) && uid->bInterfaceSubClass != SUBCLASS_ID)
-                                                break;
-                                        if(UseOr) {
-                                                if((!((MASK & CP_MASK_COMPARE_PROTOCOL) && uid->bInterfaceProtocol)))
-                                                        break;
-                                        } else {
-                                                if((MASK & CP_MASK_COMPARE_PROTOCOL) && uid->bInterfaceProtocol != PROTOCOL_ID)
-                                                        break;
-                                        }
-                                        isGoodInterface = true;
-                                        ifaceNumber = uid->bInterfaceNumber;
-                                        ifaceAltSet = uid->bAlternateSetting;
-                                        protoValue = uid->bInterfaceProtocol;
-                                        break;
-                                case USB_DESCRIPTOR_ENDPOINT:
-                                        if(!valParser.Parse(pp, pcntdn))
-                                                return false;
-                                        if(isGoodInterface)
-                                                if(theXtractor)
+					if(!valParser.Parse(pp, pcntdn))
+						return false;
+					if((MASK & CP_MASK_COMPARE_CLASS) && uid->bInterfaceClass != CLASS_ID)
+						break;
+					if((MASK & CP_MASK_COMPARE_SUBCLASS) && uid->bInterfaceSubClass != SUBCLASS_ID)
+						break;
+					if(UseOr) {
+						if((!((MASK & CP_MASK_COMPARE_PROTOCOL) && uid->bInterfaceProtocol)))
+							break;
+					} else {
+						if((MASK & CP_MASK_COMPARE_PROTOCOL) && uid->bInterfaceProtocol != PROTOCOL_ID)
+							break;
+					}
+					isGoodInterface = true;
+					ifaceNumber = uid->bInterfaceNumber;
+					ifaceAltSet = uid->bAlternateSetting;
+					protoValue = uid->bInterfaceProtocol;
+					break;
+				case USB_DESCRIPTOR_ENDPOINT:
+					if(!valParser.Parse(pp, pcntdn))
+						return false;
+					if(isGoodInterface)
+						if(theXtractor)
 							theXtractor->EndpointXtract(confValue, ifaceNumber, ifaceAltSet, protoValue, (USB_ENDPOINT_DESCRIPTOR*)varBuffer);
 					break;
 				//case HID_DESCRIPTOR_HID:

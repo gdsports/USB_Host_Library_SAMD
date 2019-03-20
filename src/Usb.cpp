@@ -874,11 +874,10 @@ uint32_t USBHost::getConfDescr(uint32_t addr, uint32_t ep, uint32_t conf, USBRea
 	USB_CONFIGURATION_DESCRIPTOR *ucd = reinterpret_cast<USB_CONFIGURATION_DESCRIPTOR *>(buf);
 
 	uint32_t ret = getConfDescr(addr, ep, 9, conf, buf);
-
 	if(ret)
 		return ret;
 
-        uint32_t total = ucd->wTotalLength;
+        uint16_t total = ucd->wTotalLength;
 
         //USBTRACE2("\r\ntotal conf.size:", total);
         return (ctrlReq(addr, ep, bmREQ_GET_DESCR, USB_REQUEST_GET_DESCRIPTOR, conf, USB_DESCRIPTOR_CONFIGURATION, 0x0000, total, sizeof(buf), buf, p));

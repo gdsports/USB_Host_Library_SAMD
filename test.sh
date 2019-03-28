@@ -1,5 +1,5 @@
 #!/bin/bash
-IDEVER="1.8.7"
+IDEVER="1.8.9"
 WORKDIR="/tmp/autobuild_$$"
 mkdir -p ${WORKDIR}
 # Install Ardino IDE in work directory

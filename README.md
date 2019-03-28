@@ -127,7 +127,7 @@ do extensive testing. Hardware I have connected and tested minimally:
 * PS4 USB (genuine)
 * ftdi serial
 * pl2303 serial
-* cdc acm serial (Uno with 16u2)
+* CDC ACM serial (Uno, Leonardo, Zero, MKR, CircuitPlayground Express)
 * MIDI USB Korg NanoKontrol2
 * Bluetooth SPP, BTHID (BT keyboard), and PS3BT (Playstation 3 controller)
 * ADK ArduinoBlinkLED

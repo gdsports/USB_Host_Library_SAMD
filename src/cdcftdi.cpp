@@ -86,7 +86,8 @@ uint32_t FTDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         if(rcode) {
                 goto FailGetDevDescr;
         }
-        if(udd->idVendor != FTDI_VID || udd->idProduct != wIdProduct)
+        if(udd->idVendor != FTDI_VID ||
+          ((udd->idProduct != wIdProduct) && (udd->idProduct != FTDI_PID) && (udd->idProduct != FTDI_PID2)))
         {
                 USBTRACE("FTDI Init: Product not supported\r\n");
                 USBTRACE2("Expected VID:", FTDI_VID);

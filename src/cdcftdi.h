@@ -27,6 +27,7 @@ e-mail   :  support@circuitsathome.com
 
 #define FTDI_VID                        0x0403  // FTDI VID
 #define FTDI_PID                        0x6001  // FTDI PID
+#define FTDI_PID2                       0x6015  // FTDI PID
 
 #define FT232AM                         0x0200
 #define FT232BM                         0x0400
@@ -139,7 +140,8 @@ public:
         void EndpointXtract(uint32_t conf, uint32_t iface, uint32_t alt, uint32_t proto, const USB_ENDPOINT_DESCRIPTOR *ep);
 
         virtual bool VIDPIDOK(uint16_t vid, uint16_t pid) {
-                return (vid == FTDI_VID && pid == wIdProduct);
+                return (vid == FTDI_VID &&
+					((pid == wIdProduct) || (pid == FTDI_PID) || (pid == FTDI_PID2)));
         }
         virtual bool isReady() {
                 return ready;

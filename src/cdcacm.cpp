@@ -134,16 +134,15 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
         for(uint8_t i = 0; i < num_of_conf; i++) {
                 ConfigDescParser< USB_CLASS_COM_AND_CDC_CTRL,
-                        CDC_SUBCLASS_ACM,
-                        CDC_PROTOCOL_ITU_T_V_250,
+                        CDC_SUBCLASS_ACM, 0,
                         CP_MASK_COMPARE_CLASS |
-                        CP_MASK_COMPARE_SUBCLASS |
-                        CP_MASK_COMPARE_PROTOCOL > CdcControlParser(this);
+                        CP_MASK_COMPARE_SUBCLASS > CdcControlParser(this);
 
                 ConfigDescParser<USB_CLASS_CDC_DATA, 0, 0,
                         CP_MASK_COMPARE_CLASS> CdcDataParser(this);
 
                 rcode = pUsb->getConfDescr(bAddress, 0, i, &CdcControlParser);
+
                 if(rcode)
                         goto FailGetConfDescr;
 
@@ -157,7 +156,7 @@ uint32_t ACM::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         } // for
 
         USBTRACE2("bNumEP:", bNumEP);
-        if(bNumEP < 3)
+        if(bNumEP < 4)
                 return USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED;
 
         // Assign epInfo to epinfo pointer

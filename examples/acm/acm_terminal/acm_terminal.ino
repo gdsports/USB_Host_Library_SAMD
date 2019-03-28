@@ -14,34 +14,34 @@
 
 class ACMAsyncOper : public CDCAsyncOper
 {
-public:
+  public:
     uint8_t OnInit(ACM *pacm);
 };
 
 uint8_t ACMAsyncOper::OnInit(ACM *pacm)
 {
-    uint8_t rcode;
-    // Set DTR = 1 RTS=1
-    rcode = pacm->SetControlLineState(3);
+  uint8_t rcode;
+  // Set DTR = 1 RTS=1
+  rcode = pacm->SetControlLineState(3);
 
-    if (rcode)
-    {
-        ErrorMessage<uint8_t>(PSTR("SetControlLineState"), rcode);
-        return rcode;
-    }
-
-    LINE_CODING	lc;
-    lc.dwDTERate	= 115200;
-    lc.bCharFormat	= 0;
-    lc.bParityType	= 0;
-    lc.bDataBits	= 8;
-
-    rcode = pacm->SetLineCoding(&lc);
-
-    if (rcode)
-        ErrorMessage<uint8_t>(PSTR("SetLineCoding"), rcode);
-
+  if (rcode)
+  {
+    ErrorMessage<uint8_t>(PSTR("SetControlLineState"), rcode);
     return rcode;
+  }
+
+  LINE_CODING	lc;
+  lc.dwDTERate	= 115200;
+  lc.bCharFormat	= 0;
+  lc.bParityType	= 0;
+  lc.bDataBits	= 8;
+
+  rcode = pacm->SetLineCoding(&lc);
+
+  if (rcode)
+    ErrorMessage<uint8_t>(PSTR("SetLineCoding"), rcode);
+
+  return rcode;
 }
 
 USBHost     UsbH;
@@ -55,7 +55,7 @@ void setup()
   SerialDebug.println("Start");
 
   if (UsbH.Init())
-      SerialDebug.println("USB host failed to initialize");
+    SerialDebug.println("USB host failed to initialize");
 
   delay( 200 );
   SerialDebug.println("USB Host init OK");
@@ -63,37 +63,35 @@ void setup()
 
 void loop()
 {
-    UsbH.Task();
+  UsbH.Task();
 
-    if( AcmSerial.isReady()) {
-       uint8_t rcode;
+  if( AcmSerial.isReady()) {
+    uint8_t rcode;
+    int bytesIn;
+    char buf[64];
 
-       /* reading the keyboard */
-       if(SerialDebug.available()) {
-         uint8_t data= SerialDebug.read();
-         /* sending to the phone */
-         rcode = AcmSerial.SndData(1, &data);
-         if (rcode)
-            ErrorMessage<uint8_t>(PSTR("SndData"), rcode);
-       }//if(SerialDebug.available()...
+    /* reading the keyboard */
+    if((bytesIn = SerialDebug.available()) > 0) {
+      bytesIn = SerialDebug.readBytes(buf, min(bytesIn, sizeof(buf)));
+      if (bytesIn > 0) {
+        /* sending to USB CDC ACM */
+        rcode = AcmSerial.SndData(bytesIn, (uint8_t*)buf);
+        if (rcode)
+          ErrorMessage<uint8_t>(PSTR("SndData"), rcode);
+      }
+    }
 
-       delay(50);
+    /* reading USB CDC ACM */
+    /* buffer size must be greater or equal to max.packet size */
+    /* it it set to 64 (largest possible max.packet size) here, can be tuned down
+       for particular endpoint */
+    uint16_t rcvd = sizeof(buf);
+    rcode = AcmSerial.RcvData(&rcvd, (uint8_t *)buf);
+    if (rcode && rcode != USB_ERRORFLOW)
+      ErrorMessage<uint8_t>(PSTR("Ret"), rcode);
 
-        /* reading the phone */
-        /* buffer size must be greater or equal to max.packet size */
-        /* it it set to 64 (largest possible max.packet size) here, can be tuned down
-        for particular endpoint */
-        uint8_t  buf[64];
-        uint16_t rcvd = 64;
-        rcode = AcmSerial.RcvData(&rcvd, buf);
-        if (rcode && rcode != USB_ERRORFLOW)
-          ErrorMessage<uint8_t>(PSTR("Ret"), rcode);
-
-        if( rcvd ) { //more than zero bytes received
-          for(uint16_t i=0; i < rcvd; i++ ) {
-            SerialDebug.print((char)buf[i]); //printing on the screen
-          }
-        }
-        delay(10);
-    }//if( Usb.getUsbTaskState() == USB_STATE_RUNNING..
+    if( rcvd ) { //more than zero bytes received
+      SerialDebug.write(buf, rcvd);
+    }
+  }
 }

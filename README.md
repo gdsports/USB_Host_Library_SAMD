@@ -134,6 +134,8 @@ do extensive testing. Hardware I have connected and tested minimally:
 * USB hubs work but not reliable yet
 * Logitech Extreme 3D Pro joystick
 * Thrustmaster T.16000M FCS joystick
+* Dymo M10 postage scale using the scaleEasy example
+* USB ESC POS receipt printer (https://github.com/gdsports/USBPrinter_uhls)
 
 ## Building the development environment
 

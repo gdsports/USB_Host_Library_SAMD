@@ -234,7 +234,7 @@ protected:
         /** Pointer to USB class instance. */
         USBHost *pUsb;
         /** Device address. */
-        uint8_t bAddress;
+        uint32_t bAddress;
         /** Endpoint info structure. */
         EpInfo epInfo[XBOX_MAX_ENDPOINTS];
 

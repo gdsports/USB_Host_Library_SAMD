@@ -99,7 +99,7 @@ uint32_t HIDUniversal::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
 	uint8_t buf[constBufSize];
 	USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-	uint8_t rcode;
+	uint32_t rcode;
 	UsbDeviceDefinition *p = NULL;
 	EpInfo *oldep_ptr = NULL;
 	uint8_t len = 0;
@@ -385,7 +385,7 @@ uint32_t HIDUniversal::Poll() {
 
 			ZeroMemory(constBuffLen, buf);
 
-			uint8_t rcode = pUsb->inTransfer(bAddress, epInfo[index].epAddr, &read, buf);
+			uint32_t rcode = pUsb->inTransfer(bAddress, epInfo[index].epAddr, &read, buf);
 
 			if(rcode) {
 				if(rcode != USB_ERRORFLOW/*hrNAK*/)

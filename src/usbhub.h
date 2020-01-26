@@ -194,7 +194,7 @@ public:
         virtual uint32_t Init(uint32_t parent, uint32_t port, uint32_t lowspeed);
         virtual uint32_t Release();
         virtual uint32_t Poll();
-        virtual void ResetHubPort(uint32_t port);
+        virtual uint32_t ResetHubPort(uint32_t port);
 
         virtual uint32_t GetAddress() {
                 return bAddress;

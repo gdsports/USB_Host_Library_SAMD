@@ -665,41 +665,62 @@ uint32_t USBHost::AttemptConfig(uint32_t driver, uint32_t parent, uint32_t port,
 again:
     uint32_t rcode = devConfig[driver]->ConfigureDevice(parent, port, lowspeed);
     if(rcode == USB_ERROR_CONFIG_REQUIRES_ADDITIONAL_RESET) {
-        if(parent == 0) {
-            // Send a bus reset on the root interface.
-            //regWr(rHCTL, bmBUSRST); //issue bus reset
-            UHD_BusReset();
-            delay(102); // delay 102ms, compensate for clock inaccuracy.
-        } else {
-            // reset parent port
-            devConfig[parent]->ResetHubPort(port);
-        }
+        ResetPort(parent, port);
+    } else if(rcode == USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+        goto failed;
     } else if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
         delay(100);
         retries++;
         goto again;
     } else if(rcode)
-        return rcode;
+        goto failed;
 
     rcode = devConfig[driver]->Init(parent, port, lowspeed);
-    if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
+    if(rcode == USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+        goto failed;
+    } else if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
         delay(100);
         retries++;
         goto again;
     }
+failed:
     if(rcode) {
         // Issue a bus reset, because the device may be in a limbo state
-        if(parent == 0) {
-            // Send a bus reset on the root interface.
-            //regWr(rHCTL, bmBUSRST); //issue bus reset
-            UHD_BusReset();
-            delay(102); // delay 102ms, compensate for clock inaccuracy.
-        } else {
-            // reset parent port
-            devConfig[parent]->ResetHubPort(port);
-        }
+        ResetPort(parent, port);
     }
     return rcode;
+}
+
+void USBHost::ResetPort(uint32_t parent, uint32_t port) {
+    if(parent == 0) {
+        // Send a bus reset on the root interface.
+        //regWr(rHCTL, bmBUSRST); //issue bus reset
+        UHD_BusReset();
+        delay(102); // delay 102ms, compensate for clock inaccuracy.
+    } else {
+        uint32_t rcode = USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
+        for (uint8_t i = 0; i < USB_NUMDEVICES; i++) { 
+            if (devConfig[i] && devConfig[i]->GetAddress() == parent) {
+                rcode = devConfig[i]->ResetHubPort(port);
+                delay(102); // delay 102ms, compensate for clock inaccuracy.
+                if (!rcode) {
+                    return;
+                }
+            }
+        }
+        USBTRACE2("USBHost::ResetPort: failed, rcode: ", rcode);
+        // release device on error
+        UsbDeviceAddress a;
+        a.devAddress = 0;
+        a.bmHub = 0;
+        a.bmParent = parent;
+        a.bmAddress = port;
+        for (uint8_t i = 0; i < USB_NUMDEVICES; i++) {
+            if (devConfig[i] && devConfig[i]->GetAddress() == a.devAddress) {
+                devConfig[i]->Release();
+            }
+        }
+    }
 }
 
 /*
@@ -765,7 +786,7 @@ uint32_t USBHost::Configuring(uint32_t parent, uint32_t port, uint32_t lowspeed)
     // Get pointer to pseudo device with address 0 assigned
     p = addrPool.GetUsbDevicePtr(0);
     if(!p) {
-        //printf("Configuring error: USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL\r\n");
+        USBTRACE("Configuring error: USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL\r\n");
         return USB_ERROR_ADDRESS_NOT_FOUND_IN_POOL;
     }
 
@@ -778,15 +799,22 @@ uint32_t USBHost::Configuring(uint32_t parent, uint32_t port, uint32_t lowspeed)
     p->epinfo = &epInfo;
 
     p->lowspeed = lowspeed;
-    // Get device descriptor
-    rcode = getDevDescr(0, 0, sizeof (USB_DEVICE_DESCRIPTOR), (uint8_t*)buf);
+
+    // Get device descriptor (some devices don't respond to first request)
+    for (int i = 0; i < 3; i++) {
+        rcode = getDevDescr(0, 0, sizeof (USB_DEVICE_DESCRIPTOR), (uint8_t*)buf);
+        if (!rcode) {
+            break;
+        }
+    }
+
     // The first GetDescriptor give us the endpoint 0 max packet size.
     epInfo.maxPktSize = buf[7];
     // Restore p->epinfo
     p->epinfo = oldep_ptr;
 
     if(rcode) {
-        //printf("Configuring error: Can't get USB_DEVICE_DESCRIPTOR\r\n");
+        USBTRACE("Configuring error: Can't get USB_DEVICE_DESCRIPTOR\r\n");
         return rcode;
     }
 

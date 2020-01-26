@@ -311,7 +311,7 @@ uint32_t XBOXRECV::Poll() {
                         inputPipe = XBOX_INPUT_PIPE_4;
 
                 bufferSize = EP_MAXPKTSIZE; // This is the maximum number of bytes we want to receive
-                pUsb->inTransfer((uint32_t)bAddress, epInfo[ inputPipe ].epAddr, &bufferSize, readBuf);
+                pUsb->inTransfer(bAddress, epInfo[ inputPipe ].epAddr, &bufferSize, readBuf);
                 if(bufferSize > 0) { // The number of received bytes
 #ifdef EXTRADEBUG
                         Notify(PSTR("Bytes Received: "), 0x80);

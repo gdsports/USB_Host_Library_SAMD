@@ -40,7 +40,11 @@ e-mail   :  support@circuitsathome.com
 // None of these should ever be included by a driver, or a user's sketch.
 
 #include "variant.h"
-#define USB_HOST_SERIAL SERIAL_PORT_MONITOR
+#if (USB_VID==0x2341 && defined(ARDUINO_SAMD_ZERO)) || (USB_VID==0x2a03 && defined(ARDUINO_SAM_ZERO))
+  #define USB_HOST_SERIAL SERIAL_PORT_MONITOR
+#else
+  #define USB_HOST_SERIAL Serial1
+#endif
 #include "Print.h"
 #include "printhex.h"
 #include "message.h"

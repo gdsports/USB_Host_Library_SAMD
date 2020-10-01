@@ -3,12 +3,12 @@ USB Host Library for Arduino SAMD boards
 
 This library is based on the [USB Host Shield Library
 2.0](https://github.com/felis/USB_Host_Shield_2.0) with modifications to work
-on Arduino and Arduino compatible SAMD boards. Be sure to see the README for
+on Arduino and Arduino compatible SAMD boards. Be sure to see the READ ME for
 details on Bluetooth pairing, etc. because the information is not repeated
 here.
 
 This library would not be possible without the work of the USB Host Shield
-Library developers. Thank you!
+Library developers is necessary!
 
 The example programs should work on Zero, M0, and MKR family on the native USB
 port in USB host mode. The USB host shield with MAX3421E is not supported by

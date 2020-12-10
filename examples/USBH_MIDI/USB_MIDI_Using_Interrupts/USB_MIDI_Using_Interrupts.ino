@@ -39,7 +39,7 @@ USBHub Hub(&UsbH);
 USBH_MIDI  Midi(&UsbH);
 
 bool doPipeConfig = false;
-bool runTask = true;
+bool usbConnected = false;
 
 //SAMD21 datasheet pg 836. ADDR location needs to be aligned. 
 uint8_t bufMidiBk0[64] __attribute__ ((aligned (4))); //Bank0
@@ -60,15 +60,26 @@ void setup()
 
 void loop()
 {
-  UsbH.Task();
+  //Note that Task() polls a hub if present, and we want to avoid polling.
+  //So these conditions carry out enumeration only, and then stop running.
+  //The idea is that except for enumeration (and release) this loop should 
+  //be quiescent. 
+  if (!usbConnected && (UsbH.getUsbTaskState() != USB_DETACHED_SUBSTATE_WAIT_FOR_DEVICE)) {
+    UsbH.Task();
+  } else if (usbConnected && (UsbH.getUsbTaskState() != USB_STATE_RUNNING)){
+    UsbH.Task();
+  }
   
-  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING ) {
+  if (usbConnected && (UsbH.getUsbTaskState() == USB_STATE_RUNNING) ) {
     if ( Midi ) {
       if (doPipeConfig) {
+        //There is a chance that a disconnect interrupt may happen in the middle of this
+        //and result in instability. Various tests here on usbConnected to hopefully
+        //reduce the chance of it.
         uint32_t epAddr = Midi.GetEpAddress();
         doPipeConfig = false;
         uint16_t rcvd;
-        while (USB->HOST.HostPipe[Midi.GetEpAddress()].PCFG.bit.PTYPE != 0x03) {
+        while (usbConnected && (USB->HOST.HostPipe[Midi.GetEpAddress()].PCFG.bit.PTYPE != 0x03)) {
           UsbH.Task(); 
           Midi.RecvData(&rcvd,  bufMidiBk0);
         }
@@ -108,8 +119,10 @@ void CUSTOM_UHD_Handler(void)
   if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DCONN) {
     SerialDebug.println("Connected");
     doPipeConfig = true;
+    usbConnected = true;
   } else if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DDISC) {
     SerialDebug.println("Disconnected");
+    usbConnected = false;
     USB->HOST.HostPipe[epAddr].PINTENCLR.reg = 0xFF; //Disable pipe interrupts
   }
   UHD_Handler();

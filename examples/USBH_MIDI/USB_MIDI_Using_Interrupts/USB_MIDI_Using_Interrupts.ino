@@ -9,21 +9,15 @@
  *******************************************************************************
  */
 
- /* Note this example should work with one MIDI device connected with or without a hub. 
-  *  It takes a while to enumerate with a hub, so be patient.
+ 
+ /* Note this example should work with one MIDI device connected without a hub. 
   *  
-  *  I am working on getting the hub to enumerate on interrupt. The original version polls.
-  *  Until then, we only have one device working.
   */
 
 #include <usbh_midi.h>
 #include <usbhub.h>
 
 #define SerialDebug Serial1
-#ifdef SERIAL_PORT_MONITOR 
-#undef SERIAL_PORT_MONITOR
-#define SERIAL_PORT_MONITOR Serial1
-#endif 
 
 #define Is_uhd_in_received0(p)                    ((USB->HOST.HostPipe[p].PINTFLAG.reg&USB_HOST_PINTFLAG_TRCPT0) == USB_HOST_PINTFLAG_TRCPT0)
 #define Is_uhd_in_received1(p)                    ((USB->HOST.HostPipe[p].PINTFLAG.reg&USB_HOST_PINTFLAG_TRCPT1) == USB_HOST_PINTFLAG_TRCPT1)
@@ -41,11 +35,10 @@
 #define Is_uhd_toggle_error1(p)                   usb_pipe_table[p].HostDescBank[1].STATUS_PIPE.bit.DTGLER
 
 USBHost UsbH;
-USBHub Hub1(&UsbH);
-USBH_MIDI  Midi1(&UsbH);
-USBH_MIDI  Midi2(&UsbH);
+USBHub Hub(&UsbH);
+USBH_MIDI  Midi(&UsbH);
 
-bool doPipeConfig1 = true;
+bool doPipeConfig = false;
 bool runTask = true;
 
 //SAMD21 datasheet pg 836. ADDR location needs to be aligned. 
@@ -61,61 +54,37 @@ void setup()
     SerialDebug.println("USB host did not start");
     while (1); //halt
   }
-  //USB_SetHandler(&CUSTOM_UHD_Handler);
+  USB_SetHandler(&CUSTOM_UHD_Handler);
   delay( 200 );
 }
 
 void loop()
 {
-  /*
-  Serial1.print("|Task State:");
-  Serial1.print(UsbH.getUsbTaskState(),HEX);
-  Serial1.print("|Hub1 address:");
-  Serial1.print(Hub1.GetAddress(),HEX);
-  if (Midi1) {
-    Serial1.print("|Midi1 address:");
-    Serial1.print(Midi1.GetAddress(),HEX);
-    Serial1.print("|Midi1 EP address:");
-    Serial1.print(Midi1.GetEpAddress(),HEX);
-  }
-  if (Midi2) {
-    Serial1.print("|Midi2 address:");
-    Serial1.print(Midi2.GetAddress(),HEX);
-    Serial1.print("|Midi2 EP address:");
-    Serial1.print(Midi2.GetEpAddress(),HEX);
-  }
-  Serial1.println("");
-  Serial1.println("Calling Usbh.Task()");
-  */
-  if (runTask) {
-    UsbH.Task(); 
-  }
-  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING ) {
+  UsbH.Task();
   
-    if ( Midi1 && (Midi1.GetAddress() != 0) && (Midi1.GetAddress() != Hub1.GetAddress()) && (Midi1.GetEpAddress() != 0)) {
-      if (doPipeConfig1) {
-        uint32_t epAddr = Midi1.GetEpAddress();
-        doPipeConfig1 = false;
-        runTask = false; //Stop querying hub after pipe configuration
-        //pipeConfig(Midi1.GetAddress(),epAddr);
+  if ( UsbH.getUsbTaskState() == USB_STATE_RUNNING ) {
+    if ( Midi ) {
+      if (doPipeConfig) {
+        uint32_t epAddr = Midi.GetEpAddress();
+        doPipeConfig = false;
         uint16_t rcvd;
-        while (USB->HOST.HostPipe[Midi1.GetEpAddress()].PCFG.bit.PTYPE != 0x03) {
+        while (USB->HOST.HostPipe[Midi.GetEpAddress()].PCFG.bit.PTYPE != 0x03) {
           UsbH.Task(); 
-          Midi1.RecvData(&rcvd,  bufMidiBk0);
+          Midi.RecvData(&rcvd,  bufMidiBk0);
         }
         usb_pipe_table[epAddr].HostDescBank[0].ADDR.reg = (uint32_t)bufMidiBk0;
         usb_pipe_table[epAddr].HostDescBank[1].ADDR.reg = (uint32_t)bufMidiBk1;
-        //USB->HOST.HostPipe[epAddr].PCFG.bit.PTOKEN = tokIN;
+        USB->HOST.HostPipe[epAddr].PCFG.bit.PTOKEN = tokIN;
         USB->HOST.HostPipe[epAddr].PSTATUSCLR.reg = USB_HOST_PSTATUSCLR_BK0RDY; 
         uhd_unfreeze_pipe(epAddr); //launch the transfer
         USB->HOST.HostPipe[epAddr].PINTENSET.reg = 0x3B; //Enable pipe interrupts
-        USB_SetHandler(&CUSTOM_UHD_Handler);
-        
+
         SerialDebug.println("Pipe Started");
         SerialDebug.print("Dump:");
-        SerialDebug.print("|ADDR0:");
+        SerialDebug.print("ADDR0:");
         SerialDebug.print(usb_pipe_table[epAddr].HostDescBank[0].ADDR.reg,HEX);
-        SerialDebug.print("|ADDR1:");
+        SerialDebug.print(":");
+        SerialDebug.print("ADDR1:");
         SerialDebug.print(usb_pipe_table[epAddr].HostDescBank[1].ADDR.reg,HEX);
         SerialDebug.print(":");
         SerialDebug.print(USB->HOST.INTFLAG.reg,HEX);
@@ -127,19 +96,17 @@ void loop()
     }
   } else {
     USB_SetHandler(&CUSTOM_UHD_Handler);
-    USB->HOST.HostPipe[Midi1.GetEpAddress()].PINTENCLR.reg = 0xFF; //Disable pipe interrupts
+    USB->HOST.HostPipe[Midi.GetEpAddress()].PINTENCLR.reg = 0xFF; //Disable pipe interrupts
   }
-  
 }
 
 
 void CUSTOM_UHD_Handler(void)
 {
-  //SerialDebug.println("Handler Called");
-  uint32_t epAddr = Midi1.GetEpAddress();
+  uint32_t epAddr = Midi.GetEpAddress();
   if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DCONN) {
     SerialDebug.println("Connected");
-    //doPipeConfig1 = true;
+    doPipeConfig = true;
   } else if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DDISC) {
     SerialDebug.println("Disconnected");
     USB->HOST.HostPipe[epAddr].PINTENCLR.reg = 0xFF; //Disable pipe interrupts
@@ -185,16 +152,6 @@ void CUSTOM_UHD_Handler(void)
   //SerialDebug.print("|INTSUMMARY:");
   //SerialDebug.print(uhd_endpoint_interrupt(),HEX);
   //SerialDebug.print("|");
-  if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DCONN) {
-    SerialDebug.println("Connected");
-    //disconnected = false;
-    doPipeConfig1 = true;
-  } else if (USB->HOST.INTFLAG.reg == USB_HOST_INTFLAG_DDISC) {
-    //disconnected = true;
-    //uhd_unfreeze_pipe(epAddr);
-    SerialDebug.println("Disconnected");
-    USB->HOST.HostPipe[epAddr].PINTENCLR.reg = 0xFF; //Disable pipe interrupts
-  }
 
   //Both banks full and bank1 is oldest, so process first. 
   if (Is_uhd_in_received0(epAddr) && Is_uhd_in_received1(epAddr) && uhd_current_bank(epAddr)) {
@@ -212,10 +169,6 @@ void CUSTOM_UHD_Handler(void)
 /*
 void pipeConfig(uint32_t addr, uint32_t epAddr) {
     SerialDebug.println("pipeConfig called");
-    SerialDebug.print("|Address:");
-    SerialDebug.print(Midi1.GetAddress(),HEX);
-    SerialDebug.print("|EpAddress:");
-    SerialDebug.println(Midi1.GetEpAddress(),HEX);
     //UHD_Pipe_Alloc Pipe Configuration Datasheet 31.8.6
     //Note usb_pipe_table and DESCADDR done by UHD_Init() already.
     USB->HOST.HostPipe[epAddr].PCFG.reg = 0; //clear

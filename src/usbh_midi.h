@@ -90,5 +90,6 @@ public:
         virtual uint32_t Init(uint32_t parent, uint32_t port, uint32_t lowspeed);
         virtual uint32_t Release();
         virtual uint32_t GetAddress() { return bAddress; };
+		inline uint32_t GetEpAddress() { return epInfo[epDataInIndex].epAddr; };
 };
 #endif //_USBH_MIDI_H_

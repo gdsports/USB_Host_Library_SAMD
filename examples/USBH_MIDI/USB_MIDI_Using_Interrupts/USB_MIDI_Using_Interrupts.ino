@@ -72,6 +72,7 @@ void loop()
           UsbH.Task(); 
           Midi.RecvData(&rcvd,  bufMidiBk0);
         }
+        USB->HOST.HostPipe[epAddr].BINTERVAL.reg = 0x01;//Zero here caused bus resets.
         usb_pipe_table[epAddr].HostDescBank[0].ADDR.reg = (uint32_t)bufMidiBk0;
         usb_pipe_table[epAddr].HostDescBank[1].ADDR.reg = (uint32_t)bufMidiBk1;
         USB->HOST.HostPipe[epAddr].PCFG.bit.PTOKEN = tokIN;

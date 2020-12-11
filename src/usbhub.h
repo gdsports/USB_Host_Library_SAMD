@@ -180,7 +180,6 @@ class USBHub : USBDeviceConfig {
 public:
         USBHub(USBHost *p);
 
-		uint32_t CheckHubStatus(uint8_t status);
         uint32_t ClearHubFeature(uint32_t fid);
         uint32_t ClearPortFeature(uint32_t fid, uint32_t port, uint32_t sel = 0);
         uint32_t GetHubDescriptor(uint32_t index, uint32_t nbytes, uint8_t *dataptr);

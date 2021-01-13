@@ -220,6 +220,9 @@ void handleBank0(uint32_t epAddr){
   int rcvd = uhd_byte_count0(epAddr);
   String dataString = "";
   for (int i = 0; i < rcvd; i++) {
+   //for regular MIDI searching for nonzero in the data and then
+   //reading in chunks of four bytes seems to work well. 
+   //Sysex would require a different strategy though.
     if (bufBk0[i] > 0) {
       dataString = String(bufBk0[i],HEX);
       i++;
@@ -244,7 +247,7 @@ void handleBank1(uint32_t epAddr){
   String dataString = "";
   for (int i = 0; i < rcvd; i++) {
     if (bufBk1[i] > 0) {
-      dataString = String(bufBk1[0],HEX);
+      dataString = String(bufBk1[i],HEX);
       i++;
       dataString = dataString + String(bufBk1[i],HEX);
       i++;

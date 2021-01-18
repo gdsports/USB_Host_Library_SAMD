@@ -111,14 +111,14 @@ struct PS5Data {
         uint8_t dummy2[5];   // 0xA-0xD unknown
 
         /* Gyro and accelerometer values */
-        int16_t gyroY, gyroZ, gyroX;   // 0x0F - 0x14
-        int16_t accX, accZ, accY;      // 0x15-0x1A
+        int16_t gyroX, gyroZ, gyroY;   // 0x0F - 0x14
+        int16_t accX, accZ, accY; // 0x15-0x1A
 
         uint8_t dummy3[5];  // 0x1B - 0x1F unknown
 
         // 0x20 - 0x23 touchpad point 1
         // 0x24 - 0x27 touchpad point 2
-        touchpadXY xy[2];
+        touchpadXY xy;
 
         uint8_t dummy4;  //0x28 unknown
         

@@ -24,7 +24,7 @@ e-mail   :  support@circuitsathome.com
 //#include "Arduino.h"
 
 struct MultiValueBuffer {
-	uint8_t		valueSize;
+	uint8_t		valueSize = 0;
 	void		*pValue;
 };
 

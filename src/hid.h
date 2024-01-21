@@ -167,6 +167,7 @@ public:
 		return pUsb;
 	};
 	virtual uint32_t SetReportParser(uint32_t id, HIDReportParser *prs);
+	virtual bool isReady();
 
 	uint32_t SetProtocol(uint32_t iface, uint32_t protocol);
 	uint32_t GetProtocol(uint32_t iface, uint8_t* dataptr);

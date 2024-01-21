@@ -94,7 +94,7 @@ public:
                 return bAddress;
         };
 
-        virtual uint32_t isReady() {
+        virtual bool isReady() {
                 return bPollEnable;
         };
 

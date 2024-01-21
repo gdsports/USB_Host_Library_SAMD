@@ -49,7 +49,7 @@ uint32_t BTD::ConfigureDevice(uint32_t parent, uint32_t port, uint32_t lowspeed)
         const uint8_t constBufSize = sizeof (USB_DEVICE_DESCRIPTOR);
         uint8_t buf[constBufSize];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
 
@@ -134,7 +134,7 @@ FailGetDevDescr:
 };
 
 uint32_t BTD::Init(uint32_t parent __attribute__((unused)), uint32_t port __attribute__((unused)), uint32_t lowspeed) {
-        uint8_t rcode;
+        uint32_t rcode;
         uint8_t num_of_conf = epInfo[1].epAddr; // Number of configurations
         epInfo[1].epAddr = 0;
 
@@ -401,7 +401,7 @@ void BTD::disconnect() {
 
 void BTD::HCI_event_task() {
         uint16_t length = BULK_MAXPKTSIZE; // Request more than 16 bytes anyway, the inTransfer routine will take care of this
-        uint8_t rcode = pUsb->inTransfer(bAddress, epInfo[ BTD_EVENT_PIPE ].epAddr, &length, hcibuf, pollInterval); // Input on endpoint 1
+        uint32_t rcode = pUsb->inTransfer(bAddress, epInfo[ BTD_EVENT_PIPE ].epAddr, &length, hcibuf, pollInterval); // Input on endpoint 1
 
         if(!rcode || rcode == USB_ERRORFLOW) { // Check for errors
                 switch(hcibuf[0]) { // Switch on event type
@@ -922,7 +922,7 @@ void BTD::HCI_task() {
 
 void BTD::ACL_event_task() {
         uint16_t length = BULK_MAXPKTSIZE;
-        uint8_t rcode = pUsb->inTransfer(bAddress, epInfo[ BTD_DATAIN_PIPE ].epAddr, &length, l2capinbuf, pollInterval); // Input on endpoint 2
+        uint32_t rcode = pUsb->inTransfer(bAddress, epInfo[ BTD_DATAIN_PIPE ].epAddr, &length, l2capinbuf, pollInterval); // Input on endpoint 2
 
         if(!rcode) { // Check for errors
                 if(length > 0) { // Check if any data was read
@@ -1232,7 +1232,7 @@ void BTD::L2CAP_Command(uint16_t handle, uint8_t* data, uint8_t nbytes, uint8_t 
         for(uint16_t i = 0; i < nbytes; i++) // L2CAP C-frame
                 buf[8 + i] = data[i];
 
-        uint8_t rcode = pUsb->outTransfer(bAddress, epInfo[ BTD_DATAOUT_PIPE ].epAddr, (8 + nbytes), buf);
+        uint32_t rcode = pUsb->outTransfer(bAddress, epInfo[ BTD_DATAOUT_PIPE ].epAddr, (8 + nbytes), buf);
         if(rcode) {
                 delay(100); // This small delay prevents it from overflowing if it fails
 #ifdef DEBUG_USB_HOST

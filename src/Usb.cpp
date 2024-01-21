@@ -635,7 +635,7 @@ uint32_t USBHost::DefaultAddressing(uint32_t parent, uint32_t port, uint32_t low
     p0->lowspeed = (lowspeed) ? 1 : 0;
 
     // Allocate new address according to device class
-    uint32_t bAddress = addrPool.AllocAddress(parent, 0, port);
+    uint8_t bAddress = addrPool.AllocAddress(parent, 0, port);
 
     if(!bAddress)
         return USB_ERROR_OUT_OF_ADDRESS_SPACE_IN_POOL;
@@ -743,7 +743,6 @@ again:
  *
  */
 uint32_t USBHost::Configuring(uint32_t parent, uint32_t port, uint32_t lowspeed) {
-    //uint32_t bAddress = 0;
     //printf("Configuring: parent = %i, port = %i\r\n", parent, port);
     uint32_t devConfigIndex;
     uint32_t rcode = 0;

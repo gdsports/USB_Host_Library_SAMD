@@ -47,7 +47,7 @@ bPollEnable(false) { // don't start polling before dongle is connected
 uint32_t XBOXONE::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         uint8_t buf[sizeof (USB_DEVICE_DESCRIPTOR)];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint16_t PID, VID;
@@ -292,7 +292,7 @@ uint32_t XBOXONE::Release() {
 }
 
 uint32_t XBOXONE::Poll() {
-        uint8_t rcode = 0;
+        uint32_t rcode = 0;
 
         if(!bPollEnable)
                 return 0;
@@ -300,7 +300,7 @@ uint32_t XBOXONE::Poll() {
         if((int32_t)((uint32_t)millis() - qNextPollTime) >= 0L) { // Do not poll if shorter than polling interval
                 qNextPollTime = (uint32_t)millis() + pollInterval; // Set new poll time
                 uint16_t length =  (uint16_t)epInfo[ XBOX_ONE_INPUT_PIPE ].maxPktSize; // Read the maximum packet size from the endpoint
-                uint8_t rcode = pUsb->inTransfer((uint32_t)bAddress, epInfo[ XBOX_ONE_INPUT_PIPE ].epAddr, &length, readBuf, pollInterval);
+                uint32_t rcode = pUsb->inTransfer((uint32_t)bAddress, epInfo[ XBOX_ONE_INPUT_PIPE ].epAddr, &length, readBuf, pollInterval);
                 if(!rcode) {
                         readReport();
 #ifdef PRINTREPORT // Uncomment "#define PRINTREPORT" to print the report send by the Xbox ONE Controller
@@ -406,7 +406,7 @@ int16_t XBOXONE::getAnalogHat(AnalogHatEnum a) {
 /* Xbox Controller commands */
 uint8_t XBOXONE::XboxCommand(uint8_t* data, uint16_t nbytes) {
         data[2] = cmdCounter++; // Increment the output command counter
-        uint8_t rcode = pUsb->outTransfer(bAddress, epInfo[ XBOX_ONE_OUTPUT_PIPE ].epAddr, nbytes, data);
+        uint32_t rcode = pUsb->outTransfer(bAddress, epInfo[ XBOX_ONE_OUTPUT_PIPE ].epAddr, nbytes, data);
 #ifdef DEBUG_USB_HOST
         Notify(PSTR("\r\nXboxCommand, Return: "), 0x80);
         D_PrintHex<uint8_t > (rcode, 0x80);

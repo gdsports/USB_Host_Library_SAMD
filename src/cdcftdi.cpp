@@ -43,7 +43,7 @@ uint32_t FTDI::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
         uint8_t buf[constBufSize];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
 
@@ -260,7 +260,7 @@ uint32_t FTDI::Release() {
 }
 
 uint32_t FTDI::Poll() {
-        uint8_t rcode = 0;
+        uint32_t rcode = 0;
 
         //if (!bPollEnable)
         //      return 0;

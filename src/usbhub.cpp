@@ -312,7 +312,7 @@ uint32_t USBHub::CheckHubStatus() {
 void USBHub::ResetHubPort(uint32_t port) {
         HubEvent evt;
         evt.bmEvent = 0;
-        uint8_t rcode;
+        uint32_t rcode;
 
         ClearPortFeature(HUB_FEATURE_C_PORT_ENABLE, port, 0);
         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
@@ -379,7 +379,7 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
 }
 
 void PrintHubPortStatus(USBHub *hubptr, uint32_t /* addr */, uint32_t port, uint32_t print_changes) {
-        uint8_t rcode = 0;
+        uint32_t rcode = 0;
         HubEvent evt;
 
         rcode = hubptr->GetPortStatus(port, 4, evt.evtBuff);

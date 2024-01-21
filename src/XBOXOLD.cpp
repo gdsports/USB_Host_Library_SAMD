@@ -63,7 +63,7 @@ bPollEnable(false) { // don't start polling before dongle is connected
 uint32_t XBOXOLD::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         uint8_t buf[sizeof (USB_DEVICE_DESCRIPTOR)];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint16_t PID;

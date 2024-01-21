@@ -228,6 +228,15 @@ FailUnknownDevice:
         rcode = USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED;
 
 Fail:
+        // Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+        // Reset endpoint info
+        p->epinfo->epAddr = 0;
+        p->epinfo->maxPktSize = 8;
+        p->epinfo->epAttribs = 0;
+        p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
 #ifdef DEBUG_USB_HOST
         Notify(PSTR("\r\nXbox One Init Failed, error code: "), 0x80);
         NotifyFail(rcode);

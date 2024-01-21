@@ -200,10 +200,20 @@ FailSetConfDescr:
 FailOnInit:
 #ifdef DEBUG_USB_HOST
         USBTRACE("OnInit:");
-#endif
-
-#ifdef DEBUG_USB_HOST
+        goto Fail;
 Fail:
+#endif
+        // Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+        // Reset endpoint info
+        p->epinfo->epAddr = 0;
+        p->epinfo->maxPktSize = 8;
+        p->epinfo->epAttribs = 0;
+        p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
+#ifdef DEBUG_USB_HOST
+        Notify(PSTR("\r\nXR21B1411 Init Failed, error code: "), 0x80);
         NotifyFail(rcode);
 #endif
         Release();

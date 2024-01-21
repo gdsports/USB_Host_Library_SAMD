@@ -217,6 +217,15 @@ Fail:
 }
 
 uint32_t USBHub::Release() {
+        UsbDeviceAddress a;
+        a.devAddress = 0;
+        a.bmHub = 0;
+        a.bmParent = bAddress;
+        for (uint8_t j = 1; j <= bNbrPorts; j++) {
+                a.bmAddress = j;
+                pUsb->ReleaseDevice(a.devAddress);
+        }
+
         pUsb->GetAddressPool().FreeAddress(bAddress);
 
         if(bAddress == 0x41)
@@ -318,15 +327,19 @@ void USBHub::ResetHubPort(uint32_t port) {
         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
         SetPortFeature(HUB_FEATURE_PORT_RESET, port, 0);
 
-
-        for(int i = 0; i < 3; i++) {
+        for(int i = 0; i < USB_RETRY_LIMIT; i++) {
                 rcode = GetPortStatus(port, 4, evt.evtBuff);
-                if(rcode) break; // Some kind of error, bail.
+                if(rcode) { // Some kind of error, bail.
+                        USBTRACE2("Hub port reset failed, rcode: ", rcode);
+                        break;
+                }
                 if(evt.bmEvent == bmHUB_PORT_EVENT_RESET_COMPLETE || evt.bmEvent == bmHUB_PORT_EVENT_LS_RESET_COMPLETE) {
+                        USBTRACE("Hub port reset complete\r\n");
                         break;
                 }
                 delay(100); // simulate polling.
         }
+
         ClearPortFeature(HUB_FEATURE_C_PORT_RESET, port, 0);
         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
         delay(20);
@@ -340,6 +353,8 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
                         if(bResetInitiated)
                                 return 0;
 
+                        USBTRACE("Hub device connected\r\n");
+
                         ClearPortFeature(HUB_FEATURE_C_PORT_ENABLE, port, 0);
                         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
                         SetPortFeature(HUB_FEATURE_PORT_RESET, port, 0);
@@ -351,6 +366,8 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
                         ClearPortFeature(HUB_FEATURE_C_PORT_ENABLE, port, 0);
                         ClearPortFeature(HUB_FEATURE_C_PORT_CONNECTION, port, 0);
                         bResetInitiated = false;
+
+                        USBTRACE("Hub device disconnected\r\n");
 
                         UsbDeviceAddress a;
                         a.devAddress = 0;
@@ -368,9 +385,9 @@ uint32_t USBHub::PortStatusChange(uint32_t port, HubEvent &evt) {
 
                         delay(20);
 
-                        a.devAddress = bAddress;
+                        USBTRACE("Hub port reset complete\r\n");
 
-                        pUsb->Configuring(a.bmAddress, port, (evt.bmStatus & bmHUB_PORT_STATUS_PORT_LOW_SPEED));
+                        pUsb->Configuring(bAddress, port, (evt.bmStatus & bmHUB_PORT_STATUS_PORT_LOW_SPEED));
                         bResetInitiated = false;
                         break;
 

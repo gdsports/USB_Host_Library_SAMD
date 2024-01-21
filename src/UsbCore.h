@@ -89,12 +89,12 @@ typedef MAX3421e<P20, P19> MAX3421E; // Balanduino
 #define USB_ERROR_FailGetConfDescr                      0xE3
 #define USB_ERROR_TRANSFER_TIMEOUT			0xFF
 
-#define USB_XFER_TIMEOUT        10000 //30000    // (5000) USB transfer timeout in milliseconds, per section 9.2.6.1 of USB 2.0 spec
-//#define USB_NAK_LIMIT		32000   //NAK limit for a transfer. 0 means NAKs are not counted
-#define USB_RETRY_LIMIT		3       // 3 retry limit for a transfer
-#define USB_SETTLE_DELAY	200     //settle delay in milliseconds
+#define USB_XFER_TIMEOUT        1000    // USB transfer timeout in milliseconds, per section 9.2.6.1 of USB 2.0 spec
+//#define USB_NAK_LIMIT		32000   // NAK limit for a transfer. 0 means NAKs are not counted
+#define USB_RETRY_LIMIT		3       // retry limit for a transfer
+#define USB_SETTLE_DELAY	200     // settle delay in milliseconds
 
-#define USB_NUMDEVICES		16	//number of USB devices
+#define USB_NUMDEVICES		16	// number of USB devices
 //#define HUB_MAX_HUBS		7	// maximum number of hubs that can be attached to the host controller
 #define HUB_PORT_RESET_DELAY	20	// hub port reset delay 10 ms recomended, can be up to 20 ms
 

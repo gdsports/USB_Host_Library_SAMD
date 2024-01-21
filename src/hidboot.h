@@ -431,7 +431,7 @@ uint32_t HIDBoot<BOOT_PROTOCOL>::Init(uint32_t parent, uint32_t port, uint32_t l
         //USBTRACE2("setEpInfoEntry returned ", rcode);
         USBTRACE2("Cnf:", bConfNum);
 
-        delay(1000);
+	delay(200); // Give time for address change
 
 	// Set Configuration Value
 	rcode = pUsb->setConf(bAddress, 0, bConfNum);
@@ -439,7 +439,7 @@ uint32_t HIDBoot<BOOT_PROTOCOL>::Init(uint32_t parent, uint32_t port, uint32_t l
 	if(rcode)
 		goto FailSetConfDescr;
 
-        delay(1000);
+	delay(200); // let things settle
 
         USBTRACE2("bIfaceNum:", bIfaceNum);
         USBTRACE2("bNumIface:", bNumIface);

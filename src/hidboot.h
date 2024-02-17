@@ -221,6 +221,10 @@ public:
                 return bAddress;
         };
 
+        virtual bool isReady() {
+                return bPollEnable;
+        };
+
 	// UsbConfigXtracter implementation
 	virtual void EndpointXtract(uint32_t conf, uint32_t iface, uint32_t alt, uint32_t proto, const USB_ENDPOINT_DESCRIPTOR *ep);
 };
@@ -431,7 +435,7 @@ uint32_t HIDBoot<BOOT_PROTOCOL>::Init(uint32_t parent, uint32_t port, uint32_t l
         //USBTRACE2("setEpInfoEntry returned ", rcode);
         USBTRACE2("Cnf:", bConfNum);
 
-        delay(1000);
+	delay(200); // Give time for address change
 
 	// Set Configuration Value
 	rcode = pUsb->setConf(bAddress, 0, bConfNum);
@@ -439,7 +443,7 @@ uint32_t HIDBoot<BOOT_PROTOCOL>::Init(uint32_t parent, uint32_t port, uint32_t l
 	if(rcode)
 		goto FailSetConfDescr;
 
-        delay(1000);
+	delay(200); // let things settle
 
         USBTRACE2("bIfaceNum:", bIfaceNum);
         USBTRACE2("bNumIface:", bNumIface);
@@ -513,6 +517,15 @@ FailSetProtocol:
         //#endif
 
 Fail:
+	// Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+	// Reset endpoint info
+	p->epinfo->epAddr = 0;
+	p->epinfo->maxPktSize = 8;
+	p->epinfo->epAttribs = 0;
+	p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
 #ifdef DEBUG_USB_HOST
         NotifyFail(rcode);
 #endif

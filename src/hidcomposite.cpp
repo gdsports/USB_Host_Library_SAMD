@@ -97,7 +97,7 @@ uint32_t HIDComposite::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
         uint8_t buf[constBufSize];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint8_t len = 0;
@@ -239,7 +239,7 @@ uint32_t HIDComposite::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
                 rcode = SetIdle(hidInterfaces[i].bmInterface, 0, 0);
 
 //                if(rcode && rcode != hrSTALL)
-//                        goto FailSetIdle;
+//                        goto Fail;
         }
 
         USBTRACE("HU configured\r\n");
@@ -271,16 +271,18 @@ FailSetConfDescr:
 #ifdef DEBUG_USB_HOST
         NotifyFailSetConfDescr();
         goto Fail;
-#endif
-
-
-FailSetIdle:
-#ifdef DEBUG_USB_HOST
-        USBTRACE("SetIdle:");
-#endif
-
-#ifdef DEBUG_USB_HOST
 Fail:
+#endif
+        // Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+        // Reset endpoint info
+        p->epinfo->epAddr = 0;
+        p->epinfo->maxPktSize = 8;
+        p->epinfo->epAttribs = 0;
+        p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
+#ifdef DEBUG_USB_HOST
         NotifyFail(rcode);
 #endif
         Release();
@@ -355,7 +357,7 @@ void HIDComposite::ZeroMemory(uint8_t len, uint8_t *buf) {
 }
 
 uint32_t HIDComposite::Poll() {
-        uint8_t rcode = 0;
+        uint32_t rcode = 0;
 
         if(!bPollEnable)
                 return 0;
@@ -375,7 +377,7 @@ uint32_t HIDComposite::Poll() {
 
                         ZeroMemory(constBuffLen, buf);
 
-                        uint8_t rcode = pUsb->inTransfer(bAddress, epInfo[index].epAddr, &read, buf);
+                        uint32_t rcode = pUsb->inTransfer(bAddress, epInfo[index].epAddr, &read, buf);
 
                         if(rcode) {
                                 if(rcode != USB_ERRORFLOW)

@@ -26,7 +26,7 @@ uint32_t PL2303::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
 
         uint8_t buf[constBufSize];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint8_t num_of_conf; // number of configurations
@@ -220,10 +220,20 @@ FailSetConfDescr:
 FailOnInit:
 #ifdef DEBUG_USB_HOST
         USBTRACE("OnInit:");
-#endif
-
-#ifdef DEBUG_USB_HOST
+        goto Fail;
 Fail:
+#endif
+        // Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+        // Reset endpoint info
+        p->epinfo->epAddr = 0;
+        p->epinfo->maxPktSize = 8;
+        p->epinfo->epAttribs = 0;
+        p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
+#ifdef DEBUG_USB_HOST
+        Notify(PSTR("\r\nPL2303 Init Failed, error code: "), 0x80);
         NotifyFail(rcode);
 #endif
         Release();
@@ -232,7 +242,7 @@ Fail:
 
 //uint8_t PL::Poll()
 //{
-//      uint8_t rcode = 0;
+//      uint32_t rcode = 0;
 //
 //      //if (!bPollEnable)
 //      //      return 0;

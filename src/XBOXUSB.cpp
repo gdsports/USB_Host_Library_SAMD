@@ -40,7 +40,7 @@ bPollEnable(false) { // don't start polling before dongle is connected
 uint32_t XBOXUSB::Init(uint32_t parent, uint32_t port, uint32_t lowspeed) {
         uint8_t buf[sizeof (USB_DEVICE_DESCRIPTOR)];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint16_t PID;
@@ -213,6 +213,15 @@ FailUnknownDevice:
         rcode = USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED;
 
 Fail:
+        // Reset address
+        if (bAddress) {
+                pUsb->setAddr(bAddress, 0, 0);
+        }
+        // Reset endpoint info
+        p->epinfo->epAddr = 0;
+        p->epinfo->maxPktSize = 8;
+        p->epinfo->epAttribs = 0;
+        p->epinfo->bmNakPower = USB_NAK_MAX_POWER;
 #ifdef DEBUG_USB_HOST
         Notify(PSTR("\r\nXbox 360 Init Failed, error code: "), 0x80);
         NotifyFail(rcode);

@@ -635,7 +635,7 @@ uint32_t USBHost::DefaultAddressing(uint32_t parent, uint32_t port, uint32_t low
     p0->lowspeed = (lowspeed) ? 1 : 0;
 
     // Allocate new address according to device class
-    uint32_t bAddress = addrPool.AllocAddress(parent, 0, port);
+    uint8_t bAddress = addrPool.AllocAddress(parent, 0, port);
 
     if(!bAddress)
         return USB_ERROR_OUT_OF_ADDRESS_SPACE_IN_POOL;
@@ -665,41 +665,51 @@ uint32_t USBHost::AttemptConfig(uint32_t driver, uint32_t parent, uint32_t port,
 again:
     uint32_t rcode = devConfig[driver]->ConfigureDevice(parent, port, lowspeed);
     if(rcode == USB_ERROR_CONFIG_REQUIRES_ADDITIONAL_RESET) {
-        if(parent == 0) {
-            // Send a bus reset on the root interface.
-            //regWr(rHCTL, bmBUSRST); //issue bus reset
-            UHD_BusReset();
-            delay(102); // delay 102ms, compensate for clock inaccuracy.
-        } else {
-            // reset parent port
-            devConfig[parent]->ResetHubPort(port);
-        }
-    } else if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
+        ResetPort(parent, port);
+    } else if(rcode == USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+        goto failed;
+    } else if(rcode == USB_ERROR_TRANSFER_TIMEOUT || rcode == USB_ERRORTIMEOUT) {
+        goto failed;
+    } else if(rcode != 0x00/*hrJERR*/ && retries < USB_RETRY_LIMIT) { // Some devices returns this when plugged in - trying to initialize the device again usually works
         delay(100);
         retries++;
         goto again;
     } else if(rcode)
-        return rcode;
+        goto failed;
 
     rcode = devConfig[driver]->Init(parent, port, lowspeed);
-    if(rcode != 0x00/*hrJERR*/ && retries < 3) { // Some devices returns this when plugged in - trying to initialize the device again usually works
+    if(rcode == USB_DEV_CONFIG_ERROR_DEVICE_NOT_SUPPORTED) {
+        goto failed;
+    } else if(rcode == USB_ERROR_TRANSFER_TIMEOUT || rcode == USB_ERRORTIMEOUT) {
+        goto failed;
+    } else if(rcode != 0x00/*hrJERR*/ && retries < USB_RETRY_LIMIT) { // Some devices returns this when plugged in - trying to initialize the device again usually works
         delay(100);
         retries++;
         goto again;
     }
+failed:
     if(rcode) {
         // Issue a bus reset, because the device may be in a limbo state
-        if(parent == 0) {
-            // Send a bus reset on the root interface.
-            //regWr(rHCTL, bmBUSRST); //issue bus reset
-            UHD_BusReset();
-            delay(102); // delay 102ms, compensate for clock inaccuracy.
-        } else {
-            // reset parent port
-            devConfig[parent]->ResetHubPort(port);
-        }
+        ResetPort(parent, port);
     }
     return rcode;
+}
+
+void USBHost::ResetPort(uint32_t parent, uint32_t port) {
+        if(parent == 0) {
+            // Send a bus reset on the root interface.
+            UHD_BusReset();
+	    while( !Is_uhd_reset_sent() ) {}
+        uhd_ack_reset_sent(); // Clear Bus Reset flag
+        } else {
+        for (uint8_t i = 0; i < USB_NUMDEVICES; i++) {
+            if (devConfig[i] && devConfig[i]->GetAddress() == parent) {
+                devConfig[i]->ResetHubPort(port);
+                return;
+            }
+        }
+    }
+    delay(102); // delay 102ms, compensate for clock inaccuracy.
 }
 
 /*
@@ -743,7 +753,6 @@ again:
  *
  */
 uint32_t USBHost::Configuring(uint32_t parent, uint32_t port, uint32_t lowspeed) {
-    //uint32_t bAddress = 0;
     //printf("Configuring: parent = %i, port = %i\r\n", parent, port);
     uint32_t devConfigIndex;
     uint32_t rcode = 0;

@@ -42,7 +42,7 @@ uint32_t XBOXRECV::ConfigureDevice(uint32_t parent, uint32_t port, uint32_t lows
         const uint8_t constBufSize = sizeof (USB_DEVICE_DESCRIPTOR);
         uint8_t buf[constBufSize];
         USB_DEVICE_DESCRIPTOR * udd = reinterpret_cast<USB_DEVICE_DESCRIPTOR*>(buf);
-        uint8_t rcode;
+        uint32_t rcode;
         UsbDeviceDefinition *p = NULL;
         EpInfo *oldep_ptr = NULL;
         uint16_t PID, VID;
@@ -136,7 +136,7 @@ Fail:
 };
 
 uint32_t XBOXRECV::Init(uint32_t parent __attribute__((unused)), uint32_t port __attribute__((unused)), uint32_t lowspeed) {
-        uint8_t rcode;
+        uint32_t rcode;
 
         AddressPool &addrPool = pUsb->GetAddressPool();
 #ifdef EXTRADEBUG
@@ -470,7 +470,7 @@ uint8_t XBOXRECV::getBatteryLevel(uint8_t controller) {
 
 void XBOXRECV::XboxCommand(uint8_t controller, uint8_t* data, uint16_t nbytes) {
 #ifdef EXTRADEBUG
-        uint8_t rcode;
+        uint32_t rcode;
 #endif
         uint8_t outputPipe;
         switch(controller) {

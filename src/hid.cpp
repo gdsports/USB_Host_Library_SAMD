@@ -24,7 +24,7 @@ uint32_t HID::GetReportDescr(uint32_t ep, USBReadParser *parser) {
         const uint8_t constBufLen = 64;
         uint8_t buf[constBufLen];
 
-        uint8_t rcode = pUsb->ctrlReq(bAddress, ep, bmREQ_HIDREPORT, USB_REQUEST_GET_DESCRIPTOR, 0x00,
+        uint32_t rcode = pUsb->ctrlReq(bAddress, ep, bmREQ_HIDREPORT, USB_REQUEST_GET_DESCRIPTOR, 0x00,
                 HID_DESCRIPTOR_REPORT, 0x0000, 128, constBufLen, buf, (USBReadParser*)parser);
 
         //return ((rcode != hrSTALL) ? rcode : 0);
@@ -35,7 +35,7 @@ uint32_t HID::GetReportDescr(uint32_t wIndex, USBReadParser *parser) {
         const uint8_t constBufLen = 128;
         uint8_t buf[constBufLen];
 
-        uint8_t rcode = pUsb->ctrlReq(bAddress, 0x00, bmREQ_HIDREPORT, USB_REQUEST_GET_DESCRIPTOR, 0x00,
+        uint32_t rcode = pUsb->ctrlReq(bAddress, 0x00, bmREQ_HIDREPORT, USB_REQUEST_GET_DESCRIPTOR, 0x00,
                 HID_DESCRIPTOR_REPORT, wIndex, 128, constBufLen, buf, (USBReadParser*)parser);
 
         //return ((rcode != hrSTALL) ? rcode : 0);
